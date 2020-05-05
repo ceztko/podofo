@@ -149,7 +149,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
                     *it = rValue;
                     break;
                 }
-                else if( (*it).GetString() > key ) 
+                else if( (*it).GetString().GetString() > key.GetString())
                 {                    
                     it = array.insert( it, rValue ); // array.insert invalidates the iterator
                     it = array.insert( it, key );
@@ -446,10 +446,10 @@ EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString
     {
         const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
 
-        if( limits[0].GetString() > key )
+        if( limits[0].GetString().GetString() > key.GetString() )
             return EPdfNameLimits::Before;
 
-        if( limits[1].GetString() < key )
+        if( limits[1].GetString().GetString() < key.GetString())
             return EPdfNameLimits::After;
     }
     else

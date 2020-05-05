@@ -80,7 +80,7 @@ void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd, bool bStripPath )
     PdfString filename( MaybeStripPath( pszFilename, true) );
 
     this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
-    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename );
 
     if( bEmbedd ) 
     {
@@ -101,7 +101,7 @@ void PdfFileSpec::Init( const char* pszFilename, const unsigned char* data, ptrd
     PdfString filename( MaybeStripPath( pszFilename, true) );
 
     this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath) ) );
-    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
+    this->GetObject()->GetDictionary().AddKey( "UF", filename );
 
     PdfDictionary ef;
 

@@ -65,19 +65,12 @@ void PdfIdentityEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( "Encoding", PdfName("Identity-H") );
 }
 
-pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
+char32_t PdfIdentityEncoding::GetCharCode( int nIndex ) const
 {
-    if( nIndex < this->GetFirstChar() ||
-	nIndex > this->GetLastChar() )
-    {
-	PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
-    }
+    if( nIndex < this->GetFirstChar() || nIndex > this->GetLastChar() )
+	    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
 
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    return ((nIndex & 0xFF00) >> 8) | ((nIndex & 0x00FF) << 8);
-#else
-    return static_cast<pdf_utf16be>(nIndex);
-#endif // PODOFO_IS_LITTLE_ENDIAN
+    return (char32_t)nIndex;
 }
 
 PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
@@ -86,14 +79,14 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
     {
         return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
-    else {
+    else
+    {
         /* Identity-H means 1-1 mapping */	  
-        //std::cout << "convertToUnicode(" << rEncodedString.IsUnicode() << ")" << std::endl;
-        return ( rEncodedString.IsUnicode() ) ? PdfString(rEncodedString) : rEncodedString.ToUnicode();
+        return rEncodedString;
     }
 }
 
-PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding(const PdfString & rString, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
@@ -101,27 +94,9 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
     }
     else if( pFont ) 
     {
-        PdfString sStr = rString.ToUnicode();
-        const pdf_utf16be* pStr = sStr.GetUnicode();
-        PdfRefCountedBuffer buffer( sStr.GetLength() );
-        char* outp = buffer.GetBuffer();
- 
-        // Get the string in UTF-16be format
-        long  lGlyphId;
-        while( *pStr ) 
-        {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( (((*pStr << 8) & 0xFF00) | ((*pStr >> 8) & 0x00FF)) );
-#else
-            lGlyphId = pFont->GetFontMetrics()->GetGlyphId( *pStr );
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-            outp[0] = static_cast<char>(lGlyphId >> 8);
-            outp[1] = static_cast<char>(lGlyphId);
-            outp += 2;
-
-            ++pStr;
-        }
+        throw std::runtime_error("Untested after utf-8 migration");
+        auto &str = rString.GetString();
+        PdfRefCountedBuffer buffer({ str.data(), str.size() });
         return buffer;
     }
     else

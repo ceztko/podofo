@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_DEFINES_H_
-#define _PDF_DEFINES_H_
+#ifndef PDF_DEFINES_H
+#define PDF_DEFINES_H
 
 /** \file PdfDefines.h
  *        This file should be included as the FIRST file in every header of
@@ -99,11 +99,6 @@
  * to your application.
  */ 
 namespace PoDoFo {
-
-/* Explicitly big-endian short, suitable for unicode text */
-typedef uint16_t     pdf_utf16be;
-/* Typedef to indicate utf-8 encoded data */
-typedef unsigned char  pdf_utf8;
 
 // Enums
 
@@ -513,4 +508,4 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfInfoInitial);
  *
  */
 
-#endif // _PDF_DEFINES_H_
+#endif // PDF_DEFINES_H

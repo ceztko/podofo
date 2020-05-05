@@ -72,21 +72,12 @@ struct TFontCacheElement {
     {
     }
 
-    TFontCacheElement( const char* pszFontName, bool bBold, bool bItalic, bool bIsSymbolCharset,
+    TFontCacheElement(const std::string &pszFontName, bool bBold, bool bItalic, bool bIsSymbolCharset,
 		               const PdfEncoding * const pEncoding )
         : m_pFont(nullptr), m_pEncoding( pEncoding ), m_bBold( bBold ), m_bItalic( bItalic ),
-          m_sFontName( reinterpret_cast<const pdf_utf8*>(pszFontName) ), m_bIsSymbolCharset (bIsSymbolCharset)
+          m_sFontName( pszFontName), m_bIsSymbolCharset (bIsSymbolCharset)
     {
     }
-
-#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-    TFontCacheElement( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bIsSymbolCharset,
-		       const PdfEncoding * const pEncoding )
-        : m_pFont(nullptr), m_pEncoding( pEncoding ), m_bBold( bBold ), 
-          m_bItalic( bItalic ), m_sFontName( pszFontName ), m_bIsSymbolCharset (bIsSymbolCharset)
-    {
-    }
-#endif // WIN32
 
     TFontCacheElement( const TFontCacheElement & rhs ) 
     {
@@ -136,7 +127,7 @@ struct TFontCacheElement {
     const PdfEncoding* m_pEncoding;
     bool               m_bBold;
     bool               m_bItalic;
-    PdfString          m_sFontName; ///< We use PdfString here as it can easily handle unicode on windows
+    std::string        m_sFontName;
     bool               m_bIsSymbolCharset;
 };
 
@@ -224,7 +215,7 @@ class PODOFO_DOC_API PdfFontCache
                       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = nullptr );
 
-#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#ifdef WIN32
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
@@ -363,7 +354,8 @@ class PODOFO_DOC_API PdfFontCache
     PdfFont* CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, bool bBold, 
                                bool bItalic, const std::vector<int> & vecCharacters );
     */
-#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+
+#ifdef WIN32
     /** Load and create a font with windows API calls
      *
      *  This method is only available on Windows systems.

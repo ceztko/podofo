@@ -94,7 +94,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
 
 PdfFontMetrics::~PdfFontMetrics() { }
 
-#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 FT_Error
 My_FT_GetFile_From_Mac_ATS_Name( const char*  fontName,
                                  FSSpec*  pathSpec, FT_Long*     face_index )
@@ -926,14 +926,8 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #endif // apple
 
-double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
+double PdfFontMetrics::StringWidth(const std::string_view& view) const
 {
-    if( !pszText )
-        return 0;
-
-    if( !nLength )
-        nLength = strlen( pszText );
-
     double dWidth = 0.0;
 
     /*
@@ -949,8 +943,8 @@ double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
     */
     // TODO: CLEAN-ME, this sucks but it's towards the right solution!
     // Probably PdfFontMetrics should just handle unicode values here and ligatures, *NOT* CIDs
-    const char* pCurr = pszText;
-    const char* pEnd = pCurr + nLength;
+    const char* pCurr = view.data();
+    const char* pEnd = pCurr + view.size();
     while (pCurr != pEnd)
     {
         double width = 0;
@@ -1001,41 +995,6 @@ double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
     return dWidth;
 }
 
-double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, size_t nLength ) const
-{
-    double dWidth = 0.0;
-    unsigned short uChar;
-
-    if( !pszText )
-        return dWidth;
-
-    if( !nLength )
-    {
-    const pdf_utf16be* pszCount = pszText;
-    while( *pszCount )
-    {
-        ++pszCount;
-        ++nLength;
-    }
-    }
-
-    const pdf_utf16be* localText = pszText;
-    for (size_t i = 0; i < nLength; i++)
-    {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        uChar = static_cast<unsigned short>(((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8));
-#else
-        uChar = static_cast<unsigned short>(*localText);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-        dWidth += UnicodeCharWidth( uChar );
-        if ( uChar == 0x0020 )
-            dWidth += m_fWordSpace * (double)this->GetFontScale() / 100.0;
-        localText++;
-    }
-
-    return dWidth;
-}
-
 EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
 {
     EPdfFontType eFontType = PdfFontFactory::GetFontType( pszFilename );
@@ -1053,17 +1012,12 @@ unsigned long PdfFontMetrics::CharWidthMM(unsigned char c) const
 
 double PdfFontMetrics::StringWidth(const PdfString& rsString) const
 {
-    return (rsString.IsUnicode() ? this->StringWidth(rsString.GetUnicode(), rsString.GetUnicodeLength()) : this->StringWidth(rsString.GetString(), rsString.GetLength()));
+    return this->StringWidth((std::string_view)rsString.GetRawData());
 }
 
-unsigned long PdfFontMetrics::StringWidthMM(const char* pszText, size_t nLength) const
+unsigned long PdfFontMetrics::StringWidthMM(const std::string_view& view) const
 {
-    return static_cast<unsigned long>(this->StringWidth(pszText, nLength) / PODOFO_CONVERSION_CONSTANT);
-}
-
-unsigned long PdfFontMetrics::StringWidthMM(const pdf_utf16be* pszText, size_t nLength) const
-{
-    return static_cast<unsigned long>(this->StringWidth(pszText, nLength) / PODOFO_CONVERSION_CONSTANT);
+    return static_cast<unsigned long>(this->StringWidth(view) / PODOFO_CONVERSION_CONSTANT);
 }
 
 unsigned long PdfFontMetrics::GetLineSpacingMM() const

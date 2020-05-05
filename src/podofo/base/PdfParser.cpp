@@ -1016,8 +1016,7 @@ void PdfParser::ReadObjects(const PdfRefCountedInputDevice& device)
         }
 
         // Generate encryption keys
-        // Set user password, try first with an empty password
-        bool bAuthenticate = m_pEncrypt->Authenticate(m_password, this->GetDocumentId() );
+        bool bAuthenticate = m_pEncrypt->Authenticate(m_password, this->GetDocumentId().GetString() );
         if( !bAuthenticate ) 
         {
             // authentication failed so we need a password from the user.

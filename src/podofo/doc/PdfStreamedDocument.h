@@ -31,8 +31,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_STREAMED_DOCUMENT_H_
-#define _PDF_STREAMED_DOCUMENT_H_
+#ifndef PDF_STREAMED_DOCUMENT_H
+#define PDF_STREAMED_DOCUMENT_H
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfImmediateWriter.h"
@@ -231,4 +231,4 @@ public:
 
 };
 
-#endif /* _PDF_STREAMED_DOCUMENT_H_ */
+#endif // PDF_STREAMED_DOCUMENT_H

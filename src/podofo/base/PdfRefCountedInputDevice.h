@@ -31,8 +31,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_REF_COUNTED_INPUT_DEVICE_H_
-#define _PDF_REF_COUNTED_INPUT_DEVICE_H_
+#ifndef PDF_REF_COUNTED_INPUT_DEVICE_H
+#define PDF_REF_COUNTED_INPUT_DEVICE_H
 
 #include "PdfDefines.h"
 
@@ -114,6 +114,6 @@ private:
 
 };
 
-#endif // _PDF_REF_COUNTED_INPUT_DEVICE_H_
+#endif // PDF_REF_COUNTED_INPUT_DEVICE_H
 
 

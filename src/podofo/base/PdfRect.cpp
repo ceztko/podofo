@@ -100,17 +100,6 @@ std::string PdfRect::ToString() const
     var.ToString( str );
 
     return str;
-
-    /*
-    std::ostringstream	oStr;
-    oStr << "[ ";
-    oStr << std::setprecision( 3 ) << m_dLeft << " ";
-    oStr << std::setprecision( 3 ) << m_dBottom << " ";
-    oStr << std::setprecision( 3 ) << m_dWidth + m_dLeft << " ";
-    oStr << std::setprecision( 3 ) << m_dHeight - m_dBottom << " ]";
-    
-    return oStr.str();
-    */
 }
 
 void PdfRect::FromArray( const PdfArray& inArray )

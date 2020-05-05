@@ -33,13 +33,13 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_COMPILERCOMPAT_H
-#define _PDF_COMPILERCOMPAT_H
+#ifndef PDF_COMPILER_COMPAT_H
+#define PDF_COMPILER_COMPAT_H
 
 //
 // *** THIS HEADER IS INCLUDED BY PdfDefines.h ***
 // *** DO NOT INCLUDE DIRECTLY ***
-#ifndef _PDF_DEFINES_H_
+#ifndef PDF_DEFINES_H
 #error Please include PdfDefines.h instead
 #endif
 
@@ -112,4 +112,4 @@ typedef SSIZE_T ssize_t;
 
 #endif // !PODOFO_COMPILE_RC
 
-#endif
+#endif // PDF_COMPILER_COMPAT_H

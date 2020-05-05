@@ -98,7 +98,7 @@ public:
      *
      * @param pOutputDevice write the font to this device
      */
-    void BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<pdf_utf16be>& usedChars, std::vector<unsigned char>& cidSet );
+    void BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<char32_t>& usedChars, std::vector<unsigned char>& cidSet );
 
 private:
     /** copy constructor, not implemented
@@ -206,7 +206,7 @@ private:
         uint16_t shortOffset;
     };
 
-    void BuildUsedCodes(CodePointToGid& usedCodes, const std::set<pdf_utf16be>& usedChars );
+    void BuildUsedCodes(CodePointToGid& usedCodes, const std::set<char32_t>& usedChars );
     void LoadGlyphs(GlyphContext& ctx, const CodePointToGid& usedCodes);
     void LoadGID(GlyphContext& ctx, GID gid);
     void LoadCompound(GlyphContext& ctx, unsigned offset);

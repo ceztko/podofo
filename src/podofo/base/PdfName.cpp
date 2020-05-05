@@ -71,19 +71,14 @@ PdfName::PdfName(const char* str)
     initFromUtf8String({ str, std::strlen(str) });
 }
 
-PdfName::PdfName(const char* str, size_t len)
-{
-    initFromUtf8String({ str, len });
-}
-
-PdfName::PdfName(const string_view& view)
-{
-    initFromUtf8String(view);
-}
-
-PdfName::PdfName(const std::string& str)
+PdfName::PdfName(const string& str)
 {
     initFromUtf8String(str);
+}
+
+PdfName::PdfName(const string_view &view)
+{
+    initFromUtf8String(view);
 }
 
 PdfName::PdfName(const PdfName& rhs)
@@ -98,6 +93,9 @@ PdfName::PdfName(const shared_ptr<string>& rawdata)
 
 void PdfName::initFromUtf8String(const string_view& view)
 {
+    if (view.data() == nullptr)
+        throw runtime_error("Name is null");
+
     if (view.length() == 0)
     {
         m_data = std::make_shared<string>();
@@ -125,17 +123,6 @@ void PdfName::initFromUtf8String(const string_view& view)
 PdfName PdfName::FromEscaped(const std::string_view& view)
 {
     return FromRaw(UnescapeName(view));
-}
-
-PdfName PdfName::FromEscaped(const char * pszName, size_t ilen)
-{
-    if( !pszName )
-        return PdfName();
-
-    if( !ilen )
-        ilen = strlen( pszName );
-
-    return FromRaw(UnescapeName({ pszName, ilen }));
 }
 
 PdfName PdfName::FromRaw(const string_view & rawcontent)
@@ -286,6 +273,11 @@ size_t PdfName::GetLength() const
         return m_data->length();
     else
         return m_utf8String->length();
+}
+
+const string& PdfName::GetRawData() const
+{
+    return *m_data;
 }
 
 const PdfName& PdfName::operator=(const PdfName& rhs)

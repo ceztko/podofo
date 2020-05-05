@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_INPUT_STREAM_H_
-#define _PDF_INPUT_STREAM_H_
+#ifndef PDF_INPUT_STREAM_H
+#define PDF_INPUT_STREAM_H
 
 #include <fstream>
 
@@ -136,4 +136,4 @@ private:
 
 };
 
-#endif // _PDF_INPUT_STREAM_H_
+#endif // PDF_INPUT_STREAM_H

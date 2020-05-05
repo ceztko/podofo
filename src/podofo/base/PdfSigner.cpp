@@ -30,7 +30,7 @@ string PdfSigner::GetSignatureFilter() const
 }
 
 void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
-    PdfSignatureField& signature, PdfSignFlags flags)
+    PdfSignature& signature, PdfSignFlags flags)
 {
     (void)flags;
 
@@ -119,7 +119,7 @@ void AdjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
 void SetSignature(PdfOutputDevice& device, const string_view& contentsData,
     size_t conentsBeaconOffset)
 {
-    PdfString sig(contentsData.data(), contentsData.length(), true);
+    auto sig = PdfString::FromHexData(contentsData);
 
     // Position at contents beacon after '<'
     device.Seek(conentsBeaconOffset);

@@ -41,6 +41,7 @@
 
 #define PRODUCER_STRING "PoDoFo - http:/" "/podofo.sf.net"
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfInfo::PdfInfo( PdfVecObjects* pParent, EPdfInfoInitial eInitial )
@@ -76,11 +77,10 @@ void PdfInfo::Init(EPdfInfoInitial eInitial)
     }
 }
 
-const PdfString & PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
+optional<PdfString> PdfInfo::GetStringFromInfoDict( const PdfName & rName ) const
 {
     const PdfObject* pObj = this->GetObject()->GetDictionary().GetKey( rName );
-    
-    return pObj && pObj->IsString() ? pObj->GetString() : PdfString::StringNull;
+    return pObj && pObj->IsString() ? std::optional(pObj->GetString()) : std::nullopt;
 }
 
 const PdfName & PdfInfo::GetNameFromInfoDict(const PdfName & rName) const
@@ -135,47 +135,55 @@ void PdfInfo::SetTrapped(const PdfName & sTrapped)
 		this->GetObject()->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );
 }
 
-const PdfString& PdfInfo::GetAuthor() const
+optional<PdfString> PdfInfo::GetAuthor() const
 {
-    return this->GetStringFromInfoDict(PdfName("Author"));
+    return this->GetStringFromInfoDict("Author");
 }
 
-const PdfString& PdfInfo::GetCreator() const
+optional<PdfString> PdfInfo::GetCreator() const
 {
-    return this->GetStringFromInfoDict(PdfName("Creator"));
+    return this->GetStringFromInfoDict("Creator");
 }
 
-const PdfString& PdfInfo::GetKeywords() const
+optional<PdfString> PdfInfo::GetKeywords() const
 {
-    return this->GetStringFromInfoDict(PdfName("Keywords"));
+    return this->GetStringFromInfoDict("Keywords");
 }
 
-const PdfString& PdfInfo::GetSubject() const
+optional<PdfString> PdfInfo::GetSubject() const
 {
-    return this->GetStringFromInfoDict(PdfName("Subject"));
+    return this->GetStringFromInfoDict("Subject");
 }
 
-const PdfString& PdfInfo::GetTitle() const
+optional<PdfString> PdfInfo::GetTitle() const
 {
-    return this->GetStringFromInfoDict(PdfName("Title"));
+    return this->GetStringFromInfoDict("Title");
 }
 
-const PdfString& PdfInfo::GetProducer() const
+optional<PdfString> PdfInfo::GetProducer() const
 {
-    return this->GetStringFromInfoDict(PdfName("Producer"));
+    return this->GetStringFromInfoDict("Producer");
 }
 
-const PdfName& PdfInfo::GetTrapped() const
+const PdfName & PdfInfo::GetTrapped() const
 {
-    return this->GetNameFromInfoDict(PdfName("Trapped"));
+    return this->GetNameFromInfoDict("Trapped");
 }
 
 PdfDate PdfInfo::GetCreationDate() const
 {
-    return PdfDate(this->GetStringFromInfoDict(PdfName("CreationDate")));
+    auto datestr = this->GetStringFromInfoDict("CreationDate");
+    if (datestr == nullptr)
+        return PdfDate();
+    else
+        return PdfDate(*datestr);
 }
 
 PdfDate PdfInfo::GetModDate() const
 {
-    return PdfDate(this->GetStringFromInfoDict(PdfName("ModDate")));
+    auto datestr = this->GetStringFromInfoDict("ModDate");
+    if (datestr == nullptr)
+        return PdfDate();
+    else
+        return PdfDate(*datestr);
 }

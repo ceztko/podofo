@@ -39,16 +39,18 @@
 #include <map>
 
 #include "PdfDefines.h"
-#include "PdfContainerDataType.h"
 
+#include <optional>
+
+#include "PdfContainerDataType.h"
 #include "PdfName.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
 
-typedef std::map<PdfName,PdfObject>      TKeyMap;
-typedef TKeyMap::iterator                TIKeyMap;
-typedef TKeyMap::const_iterator          TCIKeyMap;
+typedef std::map<PdfName,PdfObject> TKeyMap;
+typedef TKeyMap::iterator TIKeyMap;
+typedef TKeyMap::const_iterator TCIKeyMap;
 
 class PdfOutputDevice;
 
@@ -188,7 +190,7 @@ public:
 
     PdfName GetKeyAsName(const PdfName& key, const PdfName& defvalue = PdfName::KeyNull) const;
 
-    PdfString GetKeyAsString(const PdfName & key, const PdfString & defvalue = PdfString::StringNull) const;
+    PdfString GetKeyAsString(const PdfName & key, const PdfString & default = { }) const;
 
     PdfReference GetKeyAsReference(const PdfName & key, const PdfReference & defvalue = { }) const;
 

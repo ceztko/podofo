@@ -54,6 +54,12 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
     }
 }
 
+PdfRefCountedBuffer::PdfRefCountedBuffer(const std::string_view& view)
+{
+    this->Resize(view.size());
+    std::memcpy(m_pBuffer->GetRealBuffer(), view.data(), view.size());
+}
+
 PdfRefCountedBuffer::PdfRefCountedBuffer()
     : m_pBuffer(nullptr)
 {

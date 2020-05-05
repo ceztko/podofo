@@ -35,6 +35,7 @@
 #define _PDF_REF_COUNTED_BUFFER_H_
 
 #include "PdfDefines.h"
+#include <string>
 
 namespace PoDoFo
 {
@@ -63,6 +64,8 @@ public:
      *  \see SetTakePossesion
      */
     PdfRefCountedBuffer( char* pBuffer, size_t lSize );
+
+    PdfRefCountedBuffer(const std::string_view &view);
 
     /** Create a new PdfRefCountedBuffer. 
      *  \param lSize buffer size

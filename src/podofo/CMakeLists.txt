@@ -70,6 +70,17 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfEncodingObjectFactory.cpp
   doc/PdfExtGState.cpp
   doc/PdfField.cpp
+  doc/PdfTextBox.cpp
+  doc/PdfButton.cpp
+  doc/PdfCheckBox.cpp
+  doc/PdfButton.cpp
+  doc/PdfPushButton.cpp
+  doc/PdfCheckBox.cpp
+  doc/PdfRadioButton.cpp
+  doc/PdfChoiceField.cpp
+  doc/PdfComboBox.cpp
+  doc/PdfListBox.cpp
+  doc/PdfSignature.cpp
   doc/PdfFileSpec.cpp
   doc/PdfFont.cpp
   doc/PdfFontCID.cpp
@@ -97,7 +108,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfPagesTreeCache.cpp
   doc/PdfPainter.cpp
   doc/PdfShadingPattern.cpp
-  doc/PdfSignatureField.cpp
   doc/PdfStreamedDocument.cpp
   doc/PdfTable.cpp
   doc/PdfTilingPattern.cpp
@@ -182,6 +192,17 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfEncodingObjectFactory.h
   doc/PdfExtGState.h
   doc/PdfField.h
+  doc/PdfTextBox.h
+  doc/PdfButton.h
+  doc/PdfCheckBox.h
+  doc/PdfButton.h
+  doc/PdfPushButton.h
+  doc/PdfCheckBox.h
+  doc/PdfRadioButton.h
+  doc/PdfChoiceField.h
+  doc/PdfComboBox.h
+  doc/PdfListBox.h
+  doc/PdfSignature.h
   doc/PdfFileSpec.h
   doc/PdfFont.h
   doc/PdfFontCID.h
@@ -210,7 +231,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfPagesTreeCache.h
   doc/PdfPainter.h
   doc/PdfShadingPattern.h
-  doc/PdfSignatureField.h
   doc/PdfStreamedDocument.h
   doc/PdfTable.h
   doc/PdfTilingPattern.h

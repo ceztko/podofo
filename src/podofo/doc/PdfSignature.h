@@ -60,25 +60,25 @@ struct PdfSignatureBeacons
     std::shared_ptr<size_t> ByteRangeOffset;
 };
 
-class PODOFO_DOC_API PdfSignatureField :public PdfField
+class PODOFO_DOC_API PdfSignature : public PdfField
 {
 public:
 
-    /** Create a new PdfSignatureField
+    /** Create a new PdfSignature
      */
-    PdfSignatureField( PdfPage* pPage, const PdfRect & rRect);
+    PdfSignature( PdfPage* pPage, const PdfRect & rRect);
 
-    /** Create a new PdfSignatureField
+    /** Create a new PdfSignature
      *  \param bInit creates a signature field with/without a /V key
      */
-    PdfSignatureField( PdfAnnotation* pWidget, PdfDocument &pDoc, bool insertInAcroform);
+    PdfSignature( PdfAnnotation* pWidget, PdfDocument &pDoc, bool insertInAcroform);
 
-    /** Creates a PdfSignatureField from an existing PdfAnnotation, which should
+    /** Creates a PdfSignature from an existing PdfAnnotation, which should
      *  be an annotation with a field type Sig.
      *	\param pObject the object
      *	\param pWidget the annotation to create from
      */
-    PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget );
+    PdfSignature( PdfObject* pObject, PdfAnnotation* pWidget );
 
     /** Set an appearance stream for this signature field
      *  to specify its visual appearance

@@ -40,8 +40,6 @@
 #include "PdfString.h"
 #include "PdfReference.h"
 
-#include <string.h>
-
 namespace PoDoFo
 {
 
@@ -52,19 +50,17 @@ class PdfOutputStream;
 class AESCryptoEngine;
 class RC4CryptoEngine;
     
-/// Class representing PDF encryption methods. (For internal use only)
-/// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
-/// Original Copyright header:
-///////////////////////////////////////////////////////////////////////////////
-// Name:        pdfencrypt.h
-// Purpose:     
-// Author:      Ulrich Telle
-// Modified by:
-// Created:     2005-08-16
-// Copyright:   (c) Ulrich Telle
-// Licence:     wxWindows licence
-///////////////////////////////////////////////////////////////////////////////
-
+/* Class representing PDF encryption methods. (For internal use only)
+ * Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
+ * Original Copyright header:
+ * Name:        pdfencrypt.h
+ * Purpose:     
+ * Author:      Ulrich Telle
+ * Modified by:
+ * Created:     2005-08-16
+ * Copyright:   (c) Ulrich Telle
+ * Licence:     wxWindows licence
+ */
 
 /** A enum specifying a valid keylength for a PDF encryption key.
  *  Keys must be in the range 40 to 128 bit and have to be a
@@ -260,7 +256,7 @@ public:
      *  
      * \returns true if either the owner or user password matches password
      */
-    virtual bool Authenticate( const std::string_view & password, const PdfString & documentId ) = 0;
+    virtual bool Authenticate( const std::string_view & password, const  std::string_view& documentId ) = 0;
 
     /** Get the encryption algorithm of this object.
      * \returns the EPdfEncryptAlgorithm of this object
@@ -455,7 +451,7 @@ public:
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string_view& password, const PdfString& documentId) override = 0;
+    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
 
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & ueValue,
@@ -566,7 +562,7 @@ public:
     static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string_view& password, const PdfString& documentId) override = 0;
+    bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
 
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & oValue,
@@ -624,7 +620,7 @@ public:
     std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) override;
     std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& pOutputStream ) override;
     
-    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
+    bool Authenticate( const std::string_view& password, const std::string_view& documentId ) override;
     
     /// Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
@@ -661,7 +657,7 @@ public:
     std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) override;
     std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream( PdfOutputStream& pOutputStream ) override;
     
-    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
+    bool Authenticate( const std::string_view& password, const std::string_view& documentId ) override;
     
     /// Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
@@ -698,8 +694,8 @@ public:
                   EPdfPermissions protection = EPdfPermissions::Default,
                   EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::RC4V1,
                   EPdfKeyLength eKeyLength = EPdfKeyLength::L40 );
-    
-    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
+
+    bool Authenticate( const std::string_view& password, const std::string_view& documentId ) override;
     
     void Encrypt(const unsigned char* inStr, size_t inLen,
                  unsigned char* outStr, size_t outLen) const override;

@@ -324,10 +324,7 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
         {
             if (pEncoding != nullptr)
             {
-                unsigned short shCode = pEncoding->GetCharCode(i);
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-                shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
-#endif
+                char32_t shCode = pEncoding->GetCharCode(i);
                 list.push_back( PdfVariant( (int64_t)this->GetGlyphWidth(this->GetGlyphId(shCode)) ) );
                 continue;
             }

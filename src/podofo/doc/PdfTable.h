@@ -479,7 +479,7 @@ PdfString PdfSimpleTableModel::GetText ( int col, int row ) const
     if( !m_ppData || row >= m_nRows || col >= m_nCols )
         return PdfString();
     else
-        return m_ppData[row][col].IsValid() ? m_ppData[row][col] : PdfString("");
+        return m_ppData[row][col];
 }
 
 // -----------------------------------------------------

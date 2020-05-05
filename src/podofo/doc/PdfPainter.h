@@ -790,9 +790,6 @@ public:
      *  \see SetTabWidth
      */
     PdfString ExpandTabs( const PdfString & rsString, ssize_t lLen = -1) const;
-    
-    template<typename C>
-        PdfString ExpandTabsPrivate( const C* pszText, size_t lStringLen, unsigned nTabCnt, const C cTab, const C cSpace ) const;
 
  private:
     void CheckStream();

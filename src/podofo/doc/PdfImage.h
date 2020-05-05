@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_IMAGE_H_
-#define _PDF_IMAGE_H_
+#ifndef PDF_IMAGE_H
+#define PDF_IMAGE_H
 
 #include <cstdio>
 
@@ -61,7 +61,7 @@ class PdfVecObjects;
  *  \see SetImageData
  */
 class PODOFO_DOC_API PdfImage : public PdfXObject {
- public:
+public:
     /** Constuct a new PdfImage object
      *
      *  \param pParent parent vector of this image
@@ -272,4 +272,4 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 
 };
 
-#endif // _PDF_IMAGE_H_
+#endif // PDF_IMAGE_H

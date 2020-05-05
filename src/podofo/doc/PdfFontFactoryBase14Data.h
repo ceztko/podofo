@@ -4295,11 +4295,6 @@ static const PODOFO_CharData CHAR_DATA_SYMBOL[190] = {
 #define  PODOFO_HPDF_FONT_SYMBOL                  "Symbol"
 #define  PODOFO_HPDF_FONT_ZAPF_DINGBATS           "ZapfDingbats"
 
-
-
-
-
-
 /*
 static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {

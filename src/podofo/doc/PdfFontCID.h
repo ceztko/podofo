@@ -34,7 +34,7 @@
 #ifndef _PDF_FONT_CID_H_
 #define _PDF_FONT_CID_H_
 
-#include "podofo/base/PdfDefines.h"
+#include <podofo/base/PdfDefines.h>
 #include "PdfFont.h"
 #include <set>
 
@@ -118,7 +118,7 @@ class PdfFontCID : public PdfFont {
  protected:
     // Peter Petrov 24 September 2008
     PdfObject* m_pDescriptor;
-	 std::set<pdf_utf16be> m_setUsed;
+	 std::set<char32_t> m_setUsed;
 
     void MaybeUpdateBaseFontKey(void);
 

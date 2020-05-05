@@ -111,7 +111,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  Will throw an exception if nIndex is out of range.
      */
-    pdf_utf16be GetCharCode( int nIndex ) const override;
+    char32_t GetCharCode( int nIndex ) const override;
 
  protected:
     /** Get a unique ID for this encoding
@@ -129,7 +129,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  \returns the character code (i.e. glyph id)
      */
-    pdf_utf16be GetCIDValue( pdf_utf16be lUnicodeValue ) const;
+    char32_t GetCIDValue( char32_t lUnicodeValue ) const;
  
  private:
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.

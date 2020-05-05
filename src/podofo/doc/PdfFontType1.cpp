@@ -86,17 +86,17 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
 
-void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen )
+void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString &sText, size_t lStringLen )
 {
 	if ( m_bIsSubsetting )
 	{
-		// TODO: Unicode and Hex not yet supported
-		PODOFO_ASSERT( sText.IsUnicode() == false );
-		PODOFO_ASSERT( sText.IsHex() == false );
-		const unsigned char* strp = reinterpret_cast<const unsigned char *>(sText.GetString());	// must be unsigned for access to m_bUsed-array
-		for (size_t i = 0; i < lStringLen; i++)
+        throw std::runtime_error("Untested after utf-8 migration");
+        ///// assert(IsUnicode) NOTE: this was written to work only on non-unicode
+        auto& str = sText.GetString();
+		for (size_t i = 0; i < str.size(); i++)
 		{
-			m_bUsed[strp[i] / 32] |= 1 << (strp[i] % 32 ); 
+            unsigned char c = (unsigned char)str[i];
+			m_bUsed[c / 32] |= 1 << (c % 32 );
 		}
 	}
 }

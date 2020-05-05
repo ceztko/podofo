@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_MEM_DOCUMENT_H_
-#define _PDF_MEM_DOCUMENT_H_
+#ifndef PDF_MEM_DOCUMENT_H
+#define PDF_MEM_DOCUMENT_H
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfObject.h"
@@ -521,4 +521,4 @@ private:
 };
 
 
-#endif	// _PDF_MEM_DOCUMENT_H_
+#endif	// PDF_MEM_DOCUMENT_H

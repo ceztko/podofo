@@ -38,6 +38,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfDictionary::PdfDictionary() { }
@@ -102,8 +103,8 @@ PdfObject& PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rOb
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, rObject));
-    if (!inserted.second)
+    pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, rObject));
+    if ( !inserted.second )
         inserted.first->second = rObject;
 
     inserted.first->second.SetParent(this);
@@ -272,7 +273,7 @@ void PdfDictionary::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
     {
         pDevice.Print( "<<\n" );
-    } 
+    }
     else
     {
         pDevice.Print( "<<" );

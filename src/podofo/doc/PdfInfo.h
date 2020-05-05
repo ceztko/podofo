@@ -34,6 +34,8 @@
 #ifndef _PDF_INFO_H_
 #define _PDF_INFO_H_
 
+#include <optional>
+
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfName.h"
 #include "podofo/base/PdfDate.h"
@@ -76,7 +78,7 @@ public:
     /** Get the author of the document
      *  \returns the author
      */
-    inline const PdfString & GetAuthor() const;
+    std::optional<PdfString> GetAuthor() const;
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
@@ -87,7 +89,7 @@ public:
     /** Get the creator of the document
      *  \returns the creator
      */
-    inline const PdfString & GetCreator() const;
+    std::optional<PdfString> GetCreator() const;
 
     /** Set keywords for this document
      *  \param sKeywords a list of keywords
@@ -97,7 +99,7 @@ public:
     /** Get the keywords of the document
      *  \returns the keywords
      */
-    inline const PdfString & GetKeywords() const;
+    std::optional<PdfString> GetKeywords() const;
 
     /** Set the subject of the document.
      *  \param sSubject subject
@@ -107,7 +109,7 @@ public:
     /** Get the subject of the document
      *  \returns the subject
      */
-    inline const PdfString & GetSubject() const;
+    std::optional<PdfString> GetSubject() const;
 
     /** Set the title of the document.
      *  \param sTitle title
@@ -117,7 +119,7 @@ public:
     /** Get the title of the document
      *  \returns the title
      */
-    inline const PdfString & GetTitle() const;
+    std::optional<PdfString> GetTitle() const;
 
     // Peter Petrov 27 April 2008
     /** Set the producer of the document.
@@ -129,7 +131,7 @@ public:
     /** Get the producer of the document
      *  \returns the producer
      */
-    inline const PdfString & GetProducer() const;
+    std::optional<PdfString> GetProducer() const;
 
     /** Set the trapping state of the document.
      *  \param sTrapped trapped
@@ -139,17 +141,17 @@ public:
     /** Get the trapping state of the document
      *  \returns the title
      */
-    inline const PdfName & GetTrapped() const;
+    const PdfName & GetTrapped() const;
 
     /** Get creation date of document
      *  \return creation date
      */
-    inline PdfDate GetCreationDate() const;
+    PdfDate GetCreationDate() const;
 
     /** Get modification date of document
      *  \return modification date
      */
-    inline PdfDate GetModDate() const;
+    PdfDate GetModDate() const;
 
     /** Set custom info key.
      * \param sName Name of the key.
@@ -167,7 +169,7 @@ private:
      *  \para rName the key to fetch from the info dictionary
      *  \return a value from the info dictionary
      */
-    const PdfString & GetStringFromInfoDict( const PdfName & rName ) const;
+    std::optional<PdfString> GetStringFromInfoDict( const PdfName & rName ) const;
 
      /** Get a value from the info dictionary as name
      *  \para rName the key to fetch from the info dictionary

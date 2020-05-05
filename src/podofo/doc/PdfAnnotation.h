@@ -36,6 +36,8 @@
 #ifndef _PDF_ANNOTATION_H_
 #define _PDF_ANNOTATION_H_
 
+#include <optional>
+
 #include "podofo/base/PdfDefines.h"
 #include "PdfAction.h"
 #include "PdfDestination.h"
@@ -230,7 +232,7 @@ public:
      *
      *  \see SetTitle
      */
-    PdfString GetTitle() const;
+    std::optional<PdfString> GetTitle() const;
 
     /** Set the text of this annotation.
      *
@@ -246,7 +248,7 @@ public:
      *
      *  \see SetContents
      */
-    PdfString GetContents() const;
+    std::optional<PdfString> GetContents() const;
 
     /** Set the destination for link annotations
      *  \param rDestination target of the link

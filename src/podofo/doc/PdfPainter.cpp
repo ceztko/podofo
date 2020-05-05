@@ -63,34 +63,27 @@
 #include "PdfTilingPattern.h"
 #include "PdfXObject.h"
 
+using namespace PoDoFo;
+
 #define BEZIER_POINTS 13
 
-/* 4/3 * (1-cos 45,A0(B)/sin 45,A0(B = 4/3 * sqrt(2) - 1 */
+/* 4/3 * (1-cos 45<-,A0<-(B)/sin 45<-,A0<-(B = 4/3 * sqrt(2) - 1 */
 #define ARC_MAGIC    0.552284749
 #define PI           3.141592654
-
-using namespace PoDoFo;
 
 static const long clPainterHighPrecision    = 15L;
 static const long clPainterDefaultPrecision = 3L;
 
-static inline unsigned short SwapCharBytesIfRequired(pdf_utf16be ch)
+PdfString ExpandTabsPrivate(const char* pszText, size_t lStringLen, unsigned nTabCnt, const char cTab, const char cSpace);
+
+static inline bool IsNewLineChar(char32_t ch)
 {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-	return compat::ByteSwap(ch);
-#else
-	return ch;
-#endif
+    return ch == '\n';
 }
 
-static inline bool IsNewLineChar(pdf_utf16be ch)
+static inline bool IsSpaceChar(char32_t ch)
 {
-    return SwapCharBytesIfRequired(ch) == '\n';
-}
-
-static inline bool IsSpaceChar(pdf_utf16be ch)
-{
-	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
+	return isspace( ch ) != 0;
 }
 
 PdfPainter::PdfPainter(EPdfPainterFlags flags)
@@ -661,14 +654,14 @@ void PdfPainter::Circle( double dX, double dY, double dRadius )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 {
-    this->DrawText( dX, dY, sText, static_cast<long>(sText.GetCharacterLength()) );
+    this->DrawText( dX, dY, sText, static_cast<long>(sText.GetLength()) );
 }
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, size_t lStringLen )
 {
     CheckStream();
 
-    if( !m_pFont || !m_canvas || !sText.IsValid() )
+    if( !m_pFont || !m_canvas )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
@@ -692,32 +685,20 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, size_t
         this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetUnderlineThickness() );
         if( m_pFont->IsUnderlined() )
         {
-            if (sString.IsUnicode())
-                this->DrawLine( dX,
-                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
-                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetUnicode() ),
-                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
-            else
-                this->DrawLine( dX,
-                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
-                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
-                                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+            this->DrawLine( dX,
+                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
+                dX + m_pFont->GetFontMetrics()->StringWidth( sString ),
+                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
         }
 
         // Draw strikeout
         this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetStrikeoutThickness() );
         if( m_pFont->IsStrikeOut() )
         {
-            if (sString.IsUnicode())
-                this->DrawLine( dX,
-                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
-                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetUnicode() ),
-                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
-            else
-                this->DrawLine( dX,
-                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
-                                dX + m_pFont->GetFontMetrics()->StringWidth( sString.GetString() ),
-                                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
+            this->DrawLine( dX,
+                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
+                dX + m_pFont->GetFontMetrics()->StringWidth( sString ),
+                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
         }
 
         this->Restore();
@@ -798,14 +779,14 @@ void PdfPainter::MoveTextPos( double dX, double dY )
 
 void PdfPainter::AddText( const PdfString & sText )
 {
-	AddText( sText, sText.GetCharacterLength() );
+	AddText( sText, sText.GetLength() );
 }
 
 void PdfPainter::AddText( const PdfString & sText, size_t lStringLen )
 {
     CheckStream();
 
-    if( !m_pFont || !m_canvas || !sText.IsValid() || !m_isTextOpen )
+    if( !m_pFont || !m_canvas || !m_isTextOpen )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
@@ -817,8 +798,7 @@ void PdfPainter::AddText( const PdfString & sText, size_t lStringLen )
     }
 
 	// TODO: Underline and Strikeout not yet supported
-    
-	m_pFont->WriteStringToStream( sString, m_tmpStream );
+	m_pFont->WriteStringToStream(sString, m_tmpStream);
 
     m_tmpStream << " Tj\n";
 }
@@ -839,15 +819,13 @@ void PdfPainter::EndText()
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
                                     EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip, bool bSkipSpaces )
 {
+    throw std::runtime_error("Untested after utf-8 migration");
     CheckStream();
 
-    if( !m_pFont || !m_canvas || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
-
-    // Peter Petrov 25 September 2008
-    //m_pFont->EmbedFont();
     
     if( dWidth <= 0.0 || dHeight <= 0.0 ) // nonsense arguments
         return;
@@ -881,7 +859,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     std::vector<PdfString>::const_iterator it = vecLines.begin();
     while( it != vecLines.end() )
     {
-        if( (*it).GetCharacterLength() )
+        if( (*it).GetLength() )
             this->DrawTextAligned( dX, dY, dWidth, *it, eAlignment );
         dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
         ++it;
@@ -891,9 +869,10 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
 std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText, bool bSkipSpaces )
 {
+    throw std::runtime_error("Untested after utf-8 migration");
     CheckStream();
 
-    if( !m_pFont || !m_canvas || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
@@ -901,19 +880,17 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
     if( dWidth <= 0.0 ) // nonsense arguments
 	    return std::vector<PdfString>();
     
-    if( rsText.GetCharacterLength() == 0 ) // empty string
+    if( rsText.GetLength() == 0 ) // empty string
         return std::vector<PdfString>(1, rsText);
 	        
     // We will work with utf16 encoded string because it allows us 
     // fast and easy individual characters access    
-    const std::string& stringUtf8 = rsText.GetStringUtf8();
-    std::vector<pdf_utf16be> stringUtf16;
-    utf8::utf8to16(utf8::endianess::big_endian, stringUtf8.c_str(), stringUtf8.c_str() + stringUtf8.length(), std::back_inserter(stringUtf16));
+    const std::string& stringUtf8 = rsText.GetString();
 
-	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];
-    const pdf_utf16be* pszLineBegin = stringUtf16Begin;
-    const pdf_utf16be* pszCurrentCharacter = stringUtf16Begin;
-    const pdf_utf16be* pszStartOfCurrentWord  = stringUtf16Begin;
+	const char* const stringBegin = stringUtf8.data();
+    const char* pszLineBegin = stringBegin;
+    const char* pszCurrentCharacter = stringBegin;
+    const char* pszStartOfCurrentWord  = stringBegin;
     bool startOfWord = true;
     double dCurWidthOfLine = 0.0;
 	std::vector<PdfString> vecLines;
@@ -923,7 +900,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
     {
         if( IsNewLineChar( *pszCurrentCharacter ) ) // hard-break! 
         {
-            vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+            vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
 
             pszLineBegin = pszCurrentCharacter + 1;// skip the line feed
             startOfWord = true;
@@ -937,11 +914,11 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                 // -> Move it to the next one.
                 if( pszStartOfCurrentWord > pszLineBegin )
                 {
-                    vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                    vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszStartOfCurrentWord - pszLineBegin) }));
                 }
                 else
                 {
-                    vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+                    vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
                     if (bSkipSpaces)
                     {
                         // Skip all spaces at the end of the line
@@ -961,16 +938,16 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                 if (!startOfWord)
                 {
                     dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( 
-						pszStartOfCurrentWord, pszCurrentCharacter - pszStartOfCurrentWord );
+                        { pszStartOfCurrentWord, (size_t)(pszCurrentCharacter - pszStartOfCurrentWord) });
                 }
                 else
                 {
                     dCurWidthOfLine = 0.0;
                 }
             }
-            else if( ( dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) ) ) > dWidth )
+            else if( ( dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( *pszCurrentCharacter ) ) > dWidth )
             {
-                vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin ) );
+                vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
                 if( bSkipSpaces )
                 {
                     // Skip all spaces at the end of the line
@@ -989,7 +966,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
             }
             else 
             {           
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( *pszCurrentCharacter );
             }
 
             startOfWord = true;
@@ -1003,7 +980,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
             }
             //else do nothing
 
-            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ))) > dWidth)
+            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter)) > dWidth)
             {
                 if ( pszLineBegin == pszStartOfCurrentWord )
                 {
@@ -1011,31 +988,31 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                     // Put as much as possible on this line.                    
                     if (pszLineBegin == pszCurrentCharacter)
                     {
-                        vecLines.push_back( PdfString( pszCurrentCharacter, 1 ) );
+                        vecLines.push_back(PdfString({ pszCurrentCharacter, 1 }));
                         pszLineBegin = pszCurrentCharacter + 1;
                         pszStartOfCurrentWord = pszCurrentCharacter + 1;
                         dCurWidthOfLine = 0;
                     }
                     else
                     {
-                        vecLines.push_back(PdfString(pszLineBegin, pszCurrentCharacter - pszLineBegin));
+                        vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
                         pszLineBegin = pszCurrentCharacter;
                         pszStartOfCurrentWord = pszCurrentCharacter;
-                        dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
+                        dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter);
                     }
                 }
                 else
                 {
                     // The current word does not fit in the current line.
                     // -> Move it to the next one.                    
-                    vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin ) );
+                    vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszStartOfCurrentWord - pszLineBegin) }));
                     pszLineBegin = pszStartOfCurrentWord;
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( pszStartOfCurrentWord, (pszCurrentCharacter - pszStartOfCurrentWord) + 1);
+                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth({ pszStartOfCurrentWord, (size_t)((pszCurrentCharacter - pszStartOfCurrentWord) + 1) });
                 }
             }
             else 
             {
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( SwapCharBytesIfRequired( *pszCurrentCharacter ) );
+                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter);
             }
         }
         ++pszCurrentCharacter;
@@ -1047,14 +1024,14 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
         {
             // The previous word does not fit in the current line.
             // -> Move it to the next one.
-            vecLines.push_back( PdfString( pszLineBegin, pszStartOfCurrentWord - pszLineBegin) );
+            vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszStartOfCurrentWord - pszLineBegin) }));
             pszLineBegin = pszStartOfCurrentWord;
         }
         //else do nothing
 
         if( pszCurrentCharacter - pszLineBegin > 0 ) 
         {
-            vecLines.push_back( PdfString( pszLineBegin, pszCurrentCharacter - pszLineBegin) );
+            vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
         }
         //else do nothing
     }
@@ -1066,13 +1043,10 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
 {
     CheckStream();
 
-    if( !m_pFont || !m_canvas || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
-
-    // Peter Petrov 25 Septemer 2008
-    //m_pFont->EmbedFont();
 
     if( dWidth <= 0.0 ) // nonsense arguments
         return;
@@ -1772,11 +1746,11 @@ void PdfPainter::SetDependICCProfileColor( const PdfColor &rColor, const std::st
           << " sc" << std::endl;
 }
 
-template<typename C>
-PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, unsigned nTabCnt, const C cTab, const C cSpace ) const
+PdfString ExpandTabsPrivate( const char* pszText, size_t lStringLen, int tabWidth, unsigned nTabCnt, const char cTab, const char cSpace )
 {
-    size_t lLen = lStringLen + nTabCnt * (m_nTabWidth - 1) + sizeof(C);
-    C*   pszTab  = static_cast<C*>(podofo_calloc( lLen, sizeof(C) ));
+    throw std::runtime_error("Untested after utf-8 migration");
+    size_t lLen = lStringLen + nTabCnt * (tabWidth - 1) + sizeof(char);
+    char*   pszTab  = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
 
     if( !pszTab )
     {
@@ -1788,10 +1762,10 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, un
     {
         if( *pszText == cTab )
         {
-            for( int z=0;z<m_nTabWidth; z++ )
+            for( int z=0;z< tabWidth; z++ )
                 pszTab[i+z] = cSpace;
             
-            i+=m_nTabWidth;
+            i+= tabWidth;
         }
         else
             pszTab[i++] = *pszText;
@@ -1809,44 +1783,26 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, un
 
 PdfString PdfPainter::ExpandTabs( const PdfString & rsString, ssize_t lStringLen ) const
 {
+    throw std::runtime_error("Untested after utf-8 migration");
     unsigned nTabCnt  = 0;
-    bool bUnicode = rsString.IsUnicode();
-    const pdf_utf16be cTab     = 0x0900;
-    const pdf_utf16be cSpace   = 0x2000;
+    const char32_t cTab     = 0x0900;
+    const char32_t cSpace   = 0x2000;
 
+    auto& str = rsString.GetString();
     if( lStringLen < 0)
-        lStringLen = rsString.GetCharacterLength();
+        lStringLen = str.length();
 
-    if ((size_t)lStringLen > rsString.GetCharacterLength())
+    for (ssize_t i = 0; i < lStringLen; i++)
     {
-        PdfError::DebugMessage( "Requested to expand tabs in string of %" PDF_FORMAT_INT64 " chars, while it has only %" PDF_FORMAT_INT64 "; correcting the value\n",
-            static_cast<int64_t>( lStringLen ), static_cast<int64_t>( rsString.GetCharacterLength() ) );
-
-        lStringLen = rsString.GetCharacterLength();
-    }
-
-    // count the number of tabs in the string
-    if( bUnicode ) 
-    {
-        for (ssize_t i = 0; i < lStringLen; i++)
-            if( rsString.GetUnicode()[i] == cTab ) 
-                ++nTabCnt;
-    }
-    else
-    {
-        for (ssize_t i = 0; i < lStringLen; i++)
-            if( rsString.GetString()[i] == '\t' )
-                ++nTabCnt;
+        if (rsString.GetString()[i] == '\t')
+            ++nTabCnt;
     }
 
     // if no tabs are found: bail out!
-    if( !nTabCnt )
+    if ( !nTabCnt )
         return rsString;
     
-    if( rsString.IsUnicode() )
-        return ExpandTabsPrivate<pdf_utf16be>( rsString.GetUnicode(), lStringLen, nTabCnt, cTab, cSpace );
-    else
-        return ExpandTabsPrivate<char>( rsString.GetString(), lStringLen, nTabCnt, '\t', ' ' );
+    return ExpandTabsPrivate( rsString.GetString().c_str(), lStringLen, m_nTabWidth, nTabCnt, '\t', ' ' );
 }
 
 void PdfPainter::CheckStream()

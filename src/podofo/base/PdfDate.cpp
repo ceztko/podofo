@@ -82,10 +82,7 @@ PdfDate::PdfDate(const chrono::seconds &secondsFromEpoch, const std::optional<ch
 
 PdfDate::PdfDate(const PdfString &sDate)
 {
-    if (!sDate.IsValid())
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Date is invalid");
-
-    std::string date = sDate.GetStringUtf8();
+    std::string date = sDate.GetString();
 
     int y = 0;
     int m = 0;

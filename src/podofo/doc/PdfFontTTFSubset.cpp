@@ -292,12 +292,12 @@ uint16_t xln2(uint16_t v)
     return e;
 }
 
-void PdfFontTTFSubset::BuildUsedCodes(CodePointToGid& usedCodes, const std::set<pdf_utf16be>& usedChars )
+void PdfFontTTFSubset::BuildUsedCodes(CodePointToGid& usedCodes, const std::set<char32_t>& usedChars )
 {
     CodePoint codePoint;
     GID gid;
 
-    for (std::set<pdf_utf16be>::const_iterator it = usedChars.begin(); it != usedChars.end(); ++it)
+    for (std::set<char32_t>::const_iterator it = usedChars.begin(); it != usedChars.end(); ++it)
     {
         codePoint = *it;
         gid = static_cast<GID>( m_pMetrics->GetGlyphId( codePoint ) );
@@ -763,7 +763,7 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
     TTFWriteUInt32(bufp + headOffset + 8, TableCheksum(bufp, tableLength) - 0xB1B0AFBA);
 }
 	    
-void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<pdf_utf16be>& usedChars, std::vector<unsigned char>& cidSet )
+void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<char32_t>& usedChars, std::vector<unsigned char>& cidSet )
 {
     Init();
 

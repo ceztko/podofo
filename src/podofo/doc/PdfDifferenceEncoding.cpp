@@ -33,22 +33,23 @@
 
 #include "PdfDifferenceEncoding.h"
 
-#include "base/PdfDefinesPrivate.h"
-
-#include "base/PdfArray.h"
-#include "base/PdfDictionary.h"
-
-#include "PdfFont.h"
-
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <algorithm>
 
+#include <utfcpp/utf8.h>
+
+#include <base/PdfDefinesPrivate.h>
+#include <base/PdfArray.h>
+#include <base/PdfDictionary.h>
+
+#include "PdfFont.h"
+
 namespace PoDoFo {
 
 static struct {
-    pdf_utf16be u; // in fact this might be little endian on LE systems
+    char32_t u; // in fact this might be little endian on LE systems
     const char *name;
 } nameToUnicodeTab[] = {
   {0x0021, "!"},
@@ -1143,7 +1144,7 @@ static struct {
 };
 
 static struct {
-    pdf_utf16be u;
+    char32_t u;
     const char *name;
 } UnicodeToNameTab[] = {    
     {0x0000, ".notdef"},
@@ -2217,18 +2218,14 @@ const PdfEncodingDifference & PdfEncodingDifference::operator=( const PdfEncodin
     return *this;
 }
 
-void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue )
+void PdfEncodingDifference::AddDifference( int nCode, char32_t unicodeValue )
 {
-    pdf_utf16be inCodePoint = unicodeValue;
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    inCodePoint = ((inCodePoint & 0xff00) >> 8) | ((inCodePoint & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
+    char32_t inCodePoint = unicodeValue;
 
     this->AddDifference( nCode, unicodeValue, PdfDifferenceEncoding::UnicodeIDToName( inCodePoint ) );
 }
 
-void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, const PdfName & rName, bool bExplicitNames )
+void PdfEncodingDifference::AddDifference( int nCode, char32_t unicodeValue, const PdfName & rName, bool bExplicitNames )
 {
     if( nCode > 255 || nCode < 0 ) 
     {
@@ -2246,11 +2243,7 @@ void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, 
     // font's encoding is unicode-compatible, to preserve the characters' codes
     // in the process. This seems to be Adobe Reader's behaviour as well.
     if (bExplicitNames) {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        dif.unicodeValue = ((nCode & 0xff00) >> 8) | ((nCode & 0xff) << 8);
-#else
         dif.unicodeValue = nCode;
-#endif // PODOFO_IS_LITTLE_ENDIAN
     } else {
         dif.unicodeValue = unicodeValue;
     }
@@ -2270,7 +2263,7 @@ void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, 
 }
 
 
-bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & rValue ) const
+bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, char32_t & rValue ) const
 {
     TDifference dif;
     dif.nCode = nCode;
@@ -2297,11 +2290,11 @@ bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & 
     return false;
 }
 
-bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char &rValue ) const
+bool PdfEncodingDifference::ContainsUnicodeValue( char32_t unicodeValue, char &rValue ) const
 {
 	TCIVecDifferences it, end = m_vecDifferences.end();
 	for (it = m_vecDifferences.begin(); it != end; it++) {
-		pdf_utf16be uv = it->unicodeValue;
+		char32_t uv = it->unicodeValue;
 		if (uv == unicodeValue) {
 			rValue = it->nCode;
 			return true;
@@ -2469,7 +2462,7 @@ void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( PdfName("Encoding"), this->GetObject()->GetIndirectReference() );
 }
 
-pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
+char32_t PdfDifferenceEncoding::GetCharCode( int nIndex ) const
 {
     if( nIndex < this->GetFirstChar() ||
         nIndex > this->GetLastChar() )
@@ -2478,7 +2471,7 @@ pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
     }
 
     PdfName     name;
-    pdf_utf16be value;
+    char32_t value;
     if( m_differences.Contains( nIndex, name, value ) )
     {
 	return value;
@@ -2490,18 +2483,14 @@ pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
     }
 }
 
-pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
+char32_t PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
 {
     const char* pszName = rName.GetString().c_str();
 
     for( int i = 0; nameToUnicodeTab[i].name; ++i) 
     {
         if ( strcmp( nameToUnicodeTab[i].name, pszName ) == 0 )
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            return ((nameToUnicodeTab[i].u & 0xff00) >> 8) | ((nameToUnicodeTab[i].u & 0xff) << 8);
-#else
             return nameToUnicodeTab[i].u;
-#endif // PODOFO_IS_LITTLE_ENDIAN
     }
 
     // if we get here, then we might be looking up an undefined codepoint
@@ -2512,24 +2501,15 @@ pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
         size_t length = strlen( pszName );
 
         // force base16 IF it's 4 characters line
-        pdf_utf16be val = static_cast<pdf_utf16be>(strtol( pszName, nullptr, (length == 4 ? 16 : 10) ));
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        return val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
-#else
+        char32_t val = static_cast<char32_t>(strtol( pszName, NULL, (length == 4 ? 16 : 10) ));
         return val;
-#endif // PODOFO_IS_LITTLE_ENDIAN
     }
 
     return 0;
 }
 
-PdfName PdfDifferenceEncoding::UnicodeIDToName( pdf_utf16be inCodePoint )
+PdfName PdfDifferenceEncoding::UnicodeIDToName( char32_t inCodePoint )
 {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    inCodePoint = ((inCodePoint & 0xff00) >> 8) | ((inCodePoint & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
     int i;
 	for( i = 0; UnicodeToNameTab[i].name; ++i) 
     {
@@ -2559,101 +2539,42 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
 {
     const PdfEncoding* pEncoding = GetBaseEncoding();
     
-    PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
-    size_t lLen = str.GetCharacterLength();
-
-    pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
-    if( !pszUtf16 )
+    PdfString unistr  = pEncoding->ConvertToUnicode(rEncodedString, pFont);
+    auto &str = unistr.GetString();
+    std::string ret;
+    for (size_t i = 0; i < str.size(); i++)
     {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
+        PdfName name;
+        char32_t value;
+        if (m_differences.Contains(str[i], name, value))
+            utf8::append(value, std::back_inserter(ret));
     }
 
-    memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    const unsigned char* pszInput = (const unsigned char*) rEncodedString.GetString();
-    for( size_t i = 0; i < lLen; i++ ) 
-    {
-        PdfName     name;
-        pdf_utf16be value;
-        //TODO: This method should take uint8_t instead of int because of its
-        // domain (0 to 255) for 1st param, but PoDoFo still has known security
-        // issues so an API change is a Bad Thing (mabri: IMO at least) to do now.
-        if( m_differences.Contains( static_cast<int>(pszInput[i]), name, value ) )
-            pszUtf16[i] = value;
-    }
 
-    PdfString ret( pszUtf16, lLen );
-    podofo_free( pszUtf16 );
-
-    return ret;
+    return PdfString(ret);
 }
 
 PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
 {
+    throw std::runtime_error("Untested after utf-8 migration");
+
     const PdfEncoding* pEncoding = GetBaseEncoding();
 
-    pdf_utf16be* pszUtf16 = nullptr;
-    size_t lLen = 0;
-
-    if( rString.IsUnicode() )
+    std::string ret;
+    auto it = rString.GetString().begin();
+    auto end = rString.GetString().end();
+    while (it != end)
     {
-        lLen = rString.GetCharacterLength();
-        if( !lLen )
-             return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
+        char32_t c32 = utf8::next(it, end);
+        char value;
+        if (!m_differences.ContainsUnicodeValue(c32, value))
         {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-        memcpy( pszUtf16, rString.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    }
-    else
-    {
-        // Only do a copy if we really have to
-        PdfString str = rString.ToUnicode();
-        lLen = str.GetCharacterLength();
-        if( !lLen )
-            return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-        memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    }
-
-    char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
-    if( !pDest ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-
-    char *pCur = pDest;
-    long lNewLen = 0L;
-
-    for(size_t i = 0; i < lLen ; i++) 
-    {
-        pdf_utf16be val = pszUtf16[i];
-
-        if (!m_differences.ContainsUnicodeValue(val, *pCur))
-	{
-            *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(val);
-	}
-	  
-        if( *pCur) // ignore 0 characters, as they cannot be converted to the current encoding
-        {
-            ++pCur; 
-            ++lNewLen;
+            char ch = static_cast<const PdfSimpleEncoding*>(pEncoding)->GetUnicodeCharCode(c32);
+            ret.push_back(ch);
         }
     }
 
-    *pCur = '\0';
-
-    PdfRefCountedBuffer cDest( lNewLen );
-    memcpy( cDest.GetBuffer(), pDest, lNewLen );
-    podofo_free( pDest );
-    podofo_free( pszUtf16 );
-
-    return cDest;
+    return PdfRefCountedBuffer(ret);
 }
 
 const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const

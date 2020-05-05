@@ -603,10 +603,7 @@ void PdfTokenizer::ReadDictionary(const PdfRefCountedInputDevice& device, PdfVar
         if ( !contentsUnencrypted )
             encrypt = pEncrypt;
 
-        PdfString string;
-        string.SetHexData( contentsHexBuffer->size() ? &(*contentsHexBuffer)[0] : "", contentsHexBuffer->size(), encrypt );
-
-        val = string;
+        val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, encrypt);
         dict.AddKey( "Contents", val );
     }
 }
@@ -730,13 +727,13 @@ void PdfTokenizer::ReadString(const PdfRefCountedInputDevice& device, PdfVariant
                               static_cast<unsigned int>(m_vecBuffer.size()),
                               reinterpret_cast<unsigned char*>(outBuffer), outLen);
 
-            rVariant = PdfString( outBuffer, outLen );
+            rVariant = PdfString::FromRaw({ outBuffer, outLen });
 
             delete[] outBuffer;
         }
         else
         {
-            rVariant = PdfString( &(m_vecBuffer[0]), m_vecBuffer.size() );
+            rVariant = PdfString::FromRaw({ m_vecBuffer.data(), m_vecBuffer.size() });
         }
     }
     else
@@ -747,12 +744,8 @@ void PdfTokenizer::ReadString(const PdfRefCountedInputDevice& device, PdfVariant
 
 void PdfTokenizer::ReadHexString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
-    readHexString(device, m_vecBuffer );
-
-    PdfString string;
-    string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size(), pEncrypt );
-
-    rVariant = string;
+    readHexString(device, m_vecBuffer);
+    rVariant = PdfString::FromHexData({ m_vecBuffer.size() ? m_vecBuffer.data() : "", m_vecBuffer.size() }, pEncrypt);
 }
 
 void PdfTokenizer::readHexString(const PdfRefCountedInputDevice& device, std::vector<char>& rVecBuffer)

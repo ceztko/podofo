@@ -63,7 +63,7 @@ public:
     PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const override;
     bool IsAutoDelete() const override;
     bool IsSingleByteEncoding() const override;
-    pdf_utf16be GetCharCode(int nIndex) const override;
+    char32_t GetCharCode(int nIndex) const override;
     const PdfName & GetID() const override;
     const PdfEncoding* GetBaseEncoding() const;
 

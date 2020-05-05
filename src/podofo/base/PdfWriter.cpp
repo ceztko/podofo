@@ -35,6 +35,9 @@
 
 #include "PdfWriter.h"
 
+#include <iostream>
+#include <cstdlib>
+
 #include "PdfData.h"
 #include "PdfDate.h"
 #include "PdfDictionary.h"
@@ -49,10 +52,7 @@
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces
-#define LINEARIZATION_PADDING "          " 
-
-#include <iostream>
-#include <stdlib.h>
+#define LINEARIZATION_PADDING "          "
 
 using namespace std;
 using namespace PoDoFo;
@@ -234,7 +234,7 @@ void PdfWriter::FillTrailerObject( PdfObject& trailer, size_t lSize, bool bOnlyS
 
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated
-        if( m_bIncrementalUpdate && m_originalIdentifier.IsValid() && m_originalIdentifier.GetLength() > 0 )
+        if( m_bIncrementalUpdate && m_originalIdentifier.GetLength() > 0 )
         {
             array.push_back( m_originalIdentifier );
         }

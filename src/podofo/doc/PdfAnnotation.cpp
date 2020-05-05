@@ -48,7 +48,8 @@
 #include "base/PdfVariant.h"
 #include "PdfXObject.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 const long  PdfAnnotation::s_lNumActions = 27;
 const char* PdfAnnotation::s_names[] = {
@@ -133,7 +134,7 @@ void PdfAnnotation::SetRect(const PdfRect & rRect)
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
 }
 
-void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+void PoDoFo::SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
     // Setting an object as appearance stream requires osme resources to be created
     xobj->EnsureResourcesInitialized();
@@ -305,12 +306,12 @@ void PdfAnnotation::SetTitle( const PdfString & sTitle )
     this->GetObject()->GetDictionary().AddKey( "T", sTitle );
 }
 
-PdfString PdfAnnotation::GetTitle() const
+optional<PdfString> PdfAnnotation::GetTitle() const
 {
     if( this->GetObject()->GetDictionary().HasKey( "T" ) )
         return this->GetObject()->GetDictionary().GetKey( "T" )->GetString();
 
-    return PdfString();
+    return { };
 }
 
 void PdfAnnotation::SetContents( const PdfString & sContents )
@@ -318,12 +319,12 @@ void PdfAnnotation::SetContents( const PdfString & sContents )
     this->GetObject()->GetDictionary().AddKey( "Contents", sContents );
 }
 
-PdfString PdfAnnotation::GetContents() const
+optional<PdfString> PdfAnnotation::GetContents() const
 {
     if( this->GetObject()->GetDictionary().HasKey( "Contents" ) )
         return this->GetObject()->GetDictionary().GetKey( "Contents" )->GetString();
 
-    return PdfString();
+    return { };
 }
 
 void PdfAnnotation::SetDestination( const PdfDestination & rDestination )
@@ -401,7 +402,7 @@ PdfFileSpec* PdfAnnotation::GetFileAttachement() const
 PdfArray PdfAnnotation::GetQuadPoints() const
 {
     if( this->GetObject()->GetDictionary().HasKey( "QuadPoints" ) )
-        return PdfArray( this->GetObject()->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
+        return this->GetObject()->GetDictionary().GetKey( "QuadPoints" )->GetArray();
 
     return PdfArray();
 }
@@ -469,4 +470,3 @@ PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance )
             PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid appearance type" );
     }
 }
-};

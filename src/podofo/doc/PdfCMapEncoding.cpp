@@ -108,7 +108,7 @@ PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfF
     else
     {
         if (m_toUnicode.empty())
-            return PdfString("\0");
+            return PdfString();
 
         return convertToUnicode(rString, m_toUnicode, m_maxCodeRangeSize);
     }
@@ -125,10 +125,7 @@ PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding( const PdfString & rStrin
         if (m_toUnicode.empty())
             return PdfRefCountedBuffer();
 
-        if (rString.IsUnicode())
-            return convertToEncoding(rString, m_toUnicode, pFont);
-        else
-            return convertToEncoding(rString.ToUnicode(), m_toUnicode, pFont);
+        return convertToEncoding(rString, m_toUnicode, pFont);
     }
 }
 
@@ -145,7 +142,7 @@ bool PdfCMapEncoding::IsAutoDelete() const
 }
 
 
-pdf_utf16be PdfCMapEncoding::GetCharCode( int nIndex ) const
+char32_t PdfCMapEncoding::GetCharCode( int nIndex ) const
 {
     if( nIndex < this->GetFirstChar() ||
        nIndex > this->GetLastChar() )
@@ -153,11 +150,7 @@ pdf_utf16be PdfCMapEncoding::GetCharCode( int nIndex ) const
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
     
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    return ((nIndex & 0xff00) >> 8) | ((nIndex & 0xff) << 8);
-#else
-    return static_cast<pdf_utf16be>(nIndex);
-#endif // PODOFO_IS_LITTLE_ENDIAN
+    return static_cast<char32_t>(nIndex);
 }
 
 

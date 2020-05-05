@@ -51,10 +51,11 @@ class PdfVariant;
  * This abstract class provides access
  * to fontmetrics informations.
  */
-class PODOFO_DOC_API PdfFontMetrics {
- public:
+class PODOFO_DOC_API PdfFontMetrics
+{
+protected:
     PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix );
-
+public:
     virtual ~PdfFontMetrics();
 
     /** Create a width array for this font which is a required part
@@ -102,15 +103,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in PDF units
      */
-    double StringWidth( const char* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in PDF units
-     */
-    double StringWidth( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
+    double StringWidth(const std::string_view &view) const;
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
@@ -118,15 +111,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in 1/1000th mm
      */
-    unsigned long StringWidthMM( const char* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of a given text string in 1/1000th mm when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long StringWidthMM( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
+    unsigned long StringWidthMM(const std::string_view& view) const;
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character

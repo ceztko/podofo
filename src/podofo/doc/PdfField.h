@@ -33,12 +33,15 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_FIELD_H_
-#define _PDF_FIELD_H_
+#ifndef PDF_FIELD_H
+#define PDF_FIELD_H
+
+#include <optional>
 
 #include "podofo/base/PdfDefines.h"  
 #include "podofo/base/PdfName.h"
 #include "podofo/base/PdfString.h"
+#include "base/PdfDictionary.h"
 
 #include "PdfAnnotation.h"
 
@@ -46,9 +49,7 @@ namespace PoDoFo {
 
 class PdfAcroForm;
 class PdfAction;
-class PdfAnnotation;
 class PdfDocument;
-class PdfObject;
 class PdfPage;
 class PdfRect;
 class PdfReference;
@@ -113,7 +114,7 @@ protected:
      *
      *  \see GetFieldFlag
      */
-    void SetFieldFlag( long lValue, bool bSet );
+    void SetFieldFlag( int64_t lValue, bool bSet );
 
     /**
      *  \param lValue it is checked if these bits are set
@@ -123,7 +124,7 @@ protected:
      *
      *  \see SetFieldFlag
      */
-    bool GetFieldFlag( long lValue, bool bDefault ) const;
+    bool GetFieldFlag(int64_t lValue, bool bDefault ) const;
 
     /**
     *  \param rObject the object to test for field flags
@@ -266,17 +267,17 @@ protected:
 
     /** \returns the field name of this PdfField
      */
-    PdfString GetName() const;
+    std::optional<PdfString> GetName() const;
 
     /** \returns the field name of this PdfField at this level of the hierarchy
      */
-    PdfString GetNameRaw() const;
+    std::optional<PdfString> GetNameRaw() const;
 
     /** \returns the parents qualified name of this PdfField
      *
      *  \param escapePartialNames escape non compliant partial names
      */
-    PdfString GetFullName(bool escapePartialNames = false) const;
+    std::string GetFullName(bool escapePartialNames = false) const;
 
     /**
      * Set the alternate name of this field which 
@@ -289,7 +290,7 @@ protected:
 
     /** \returns the fields alternate name
      */
-    PdfString GetAlternateName() const;
+    std::optional<PdfString> GetAlternateName() const;
 
     /**
      * Sets the fields mapping name which is used when exporting
@@ -301,7 +302,7 @@ protected:
 
     /** \returns the mapping name of this field
      */
-    PdfString GetMappingName() const;
+    std::optional<PdfString> GetMappingName() const;
 
     /** Set this field to be readonly.
      *  I.e. it will not interact with the user
@@ -391,550 +392,6 @@ private:
      PdfAnnotation* m_pWidget;
 };
 
-class PODOFO_DOC_API PdfButton : public PdfField
-{
-    friend class PdfField;
- protected:
-    enum
-    {
-        ePdfButton_NoToggleOff      = 0x0004000,
-        ePdfButton_Radio            = 0x0008000,
-        ePdfButton_PushButton       = 0x0010000,
-        ePdfButton_RadioInUnison    = 0x2000000
-    };
-
-    /** Create a new PdfButton
-    */
-    PdfButton(EPdfField eField, PdfAnnotation* pWidget, PdfDocument &doc, bool insertInAcrofrom);
-
-    /** Create a new PdfButton
-    */
-    PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget );
-
-    /** Create a new PdfButton
-     */
-    PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect);
-
- public:
-    /**
-     * \returns true if this is a pushbutton
-     */
-    bool IsPushButton() const;
-
-    /**
-     * \returns true if this is a checkbox
-     */
-    bool IsCheckBox() const;
-
-    /**
-     * \returns true if this is a radiobutton
-     */
-    bool IsRadioButton() const;
-
-    /** Set the normal caption of this button
-     *
-     *  \param rsText the caption
-     */
-    void SetCaption( const PdfString & rsText );
-
-    /** 
-     *  \returns the caption of this button
-     */
-    const PdfString GetCaption() const;
-
 };
 
-/** A push button is a button which has no state and value
- *  but can toggle actions.
- */
-class PODOFO_DOC_API PdfPushButton : public PdfButton
-{
-    friend class PdfField;
-private:
-    /** Create a new PdfPushButton
-     */
-    PdfPushButton( PdfObject* pObject, PdfAnnotation* pWidget );
-
-public:
-    /** Create a new PdfPushButton
-     */
-    PdfPushButton(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfPushButton
-     */
-    PdfPushButton( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Set the rollover caption of this button
-     *  which is displayed when the cursor enters the field
-     *  without the mouse button being pressed
-     *
-     *  \param rsText the caption
-     */
-    void SetRolloverCaption( const PdfString & rsText );
-
-    /** 
-     *  \returns the rollover caption of this button
-     */
-    const PdfString GetRolloverCaption() const;
-
-    /** Set the alternate caption of this button
-     *  which is displayed when the button is pressed.
-     *
-     *  \param rsText the caption
-     */
-    void SetAlternateCaption( const PdfString & rsText );
-
-    /** 
-     *  \returns the rollover caption of this button
-     */
-    const PdfString GetAlternateCaption() const;
-
- private:
-    void Init();
-};
-
-/** A checkbox can be checked or unchecked by the user
- */
-class PODOFO_DOC_API PdfCheckBox : public PdfButton
-{
-    friend class PdfField;
-private:
-    /** Create a new PdfCheckBox
-     */
-    PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget );
-public:
-    /** Create a new PdfRadioButton
-     */
-    PdfCheckBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfCheckBox
-     */
-    PdfCheckBox( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Set the appearance stream which is displayed when the checkbox
-     *  is checked.
-     *
-     *  \param rXObject an xobject which contains the drawing commands for a checked checkbox
-     */
-    void SetAppearanceChecked( const PdfXObject & rXObject );
-
-    /** Set the appearance stream which is displayed when the checkbox
-     *  is unchecked.
-     *
-     *  \param rXObject an xobject which contains the drawing commands for an unchecked checkbox
-     */
-    void SetAppearanceUnchecked( const PdfXObject & rXObject );
-
-    /** Sets the state of this checkbox
-     *
-     *  \param bChecked if true the checkbox will be checked
-     */
-    void SetChecked( bool bChecked );
-
-    /**
-     * \returns true if the checkbox is checked
-     */
-    bool IsChecked() const;
-
- private:
-
-    /** Add a appearance stream to this checkbox
-     *
-     *  \param rName name of the appearance stream
-     *  \param rReference reference to the XObject containing the appearance stream
-     */
-    void AddAppearanceStream( const PdfName & rName, const PdfReference & rReference );
-};
-
-/** A radio button
- * TODO: This is just a stub
-*/
-class PODOFO_DOC_API PdfRadioButton : public PdfButton
-{
-    friend class PdfField;
-private:
-    /** Create a new PdfRadioButton
-     */
-    PdfRadioButton( PdfObject *pObject, PdfAnnotation* pWidget );
-public:
-    /** Create a new PdfRadioButton
-     */
-    PdfRadioButton(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfRadioButton
-     */
-    PdfRadioButton( PdfPage* pPage, const PdfRect & rRect);
-};
-
-/** A textfield in a PDF file.
- *  
- *  Users can enter text into a text field.
- *  Single and multi line text is possible,
- *  as well as richtext. The text can be interpreted
- *  as path to a file which is going to be submitted.
- */
-class PODOFO_DOC_API PdfTextField : public PdfField
-{
-    friend class PdfField;
-private:
-    enum
-    {
-        ePdfTextField_MultiLine     = 0x0001000,
-        ePdfTextField_Password      = 0x0002000,
-        ePdfTextField_FileSelect    = 0x0100000,
-        ePdfTextField_NoSpellcheck  = 0x0400000,
-        ePdfTextField_NoScroll      = 0x0800000,
-        ePdfTextField_Comb          = 0x1000000,
-        ePdfTextField_RichText      = 0x2000000
-    };
-
-private:
-    /** Create a new PdfTextField
-     */
-    PdfTextField( PdfObject *pObject, PdfAnnotation* pWidget );
-
-public:
-    /** Create a new PdfTextField
-     */
-    PdfTextField(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfTextField
-     */
-    PdfTextField( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Sets the text contents of this text field.
-     *
-     *  \param rsText the text of this field
-     */
-    void SetText( const PdfString & rsText );
-
-    /**
-     *  \returns the text contents of this text field
-     */
-    PdfString GetText() const;
-
-    /** Sets the max length in characters of this textfield
-     *  \param nMaxLen the max length of this textfields in characters
-     */
-    void SetMaxLen(int64_t nMaxLen);
-
-    /** 
-     * \returns the max length of this textfield in characters or -1
-     *          if no max length was specified
-     */
-    int64_t GetMaxLen() const;
-
-    /**
-     *  Create a multi-line text field that can contains multiple lines of text.
-     *  \param bMultiLine if true a multi line field is generated, otherwise
-     *                    the text field can contain only a single line of text.
-     *
-     *  The default is to create a single line text field.
-     */
-    void SetMultiLine( bool bMultiLine );
-
-    /** 
-     * \returns true if this text field can contain multiple lines of text
-     */
-    bool IsMultiLine() const;
-
-    /** 
-     *  Create a password text field that should not echo entered
-     *  characters visibly to the screen.
-     *
-     *  \param bPassword if true a password field is created
-     *
-     *  The default is to create no password field
-     */
-    void SetPasswordField( bool bPassword );
-
-    /**
-     * \returns true if this field is a password field that does
-     *               not echo entered characters on the screen
-     */
-    bool IsPasswordField() const;
-
-    /** 
-     *  Create a file selection field.
-     *  The entered contents are treated as filename to a file
-     *  whose contents are submitted as the value of the field.
-     *
-     *  \param bFile if true the contents are treated as a pathname
-     *               to a file to submit
-     */
-    void SetFileField( bool bFile );
-
-    /**
-     * \returns true if the contents are treated as filename
-     */
-    bool IsFileField() const;
-
-    /** 
-     *  Enable/disable spellchecking for this text field
-     *
-     *  \param bSpellcheck if true spellchecking will be enabled
-     *
-     *  Text fields are spellchecked by default
-     */
-    void SetSpellcheckingEnabled( bool bSpellcheck );
-
-    /** 
-     *  \returns true if spellchecking is enabled for this text field
-     */
-    bool IsSpellcheckingEnabled() const;
-
-    /** 
-     *  Enable/disable scrollbars for this text field
-     *
-     *  \param bScroll if true scrollbars will be enabled
-     *
-     *  Text fields have scrollbars by default
-     */
-    void SetScrollBarsEnabled( bool bScroll );
-
-    /** 
-     *  \returns true if scrollbars are enabled for this text field
-     */
-    bool IsScrollBarsEnabled() const;
-
-    /** 
-     *  Divide the text field into max-len equal
-     *  combs.
-     *
-     *  \param bCombs if true enable division into combs
-     *
-     *  By default combs are disabled. Requires the max-len
-     *  property to be set.
-     *
-     *  \see SetMaxLen
-     */
-    void SetCombs( bool bCombs );
-
-    /**
-     * \returns true if the text field has a division into equal combs set on it
-     */
-    bool IsCombs() const;
-
-    /**
-     * Creates a richtext field.
-     *
-     * \param bRichText if true creates a richtext field
-     *
-     * By default richtext is disabled.
-     */
-    void SetRichText( bool bRichText );
-
-    /** 
-     * \returns true if this is a richtext text field
-     */
-    bool IsRichText() const;
-
- private:
-    void Init();
-};
-
-// TODO: Multiselect
-/** A list of items in a PDF file.
- *  You cannot create this object directly, use
- *  PdfComboBox or PdfListBox instead.
- *  
- *  \see PdfComboBox 
- *  \see PdfListBox
- */
-class PODOFO_DOC_API PdfListField : public PdfField
-{
-    friend class PdfField;
-protected:
-    enum
-    {
-        ePdfListField_Combo         = 0x0020000,
-        ePdfListField_Edit          = 0x0040000,
-        ePdfListField_Sort          = 0x0080000,
-        ePdfListField_MultiSelect   = 0x0200000,
-        ePdfListField_NoSpellcheck  = 0x0400000,
-        ePdfListField_CommitOnSelChange = 0x4000000
-    };
-
-    /** Create a new PdfListField
-     */
-    PdfListField(EPdfField eField, PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfListField
-     */
-    PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation* pWidget );
-
-    /** Create a new PdfTextField
-     */
-    PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect);
-
- public:
-    /**
-     * Inserts a new item into the list
-     *
-     * @param rsValue the value of the item
-     * @param rsDisplayName an optional display string that is displayed in the viewer
-     *                      instead of the value
-     */
-    void InsertItem( const PdfString & rsValue, const PdfString & rsDisplayName = PdfString::StringNull );
-
-    /** 
-     * Removes an item for the list
-     *
-     * @param nIndex index of the item to remove
-     */
-    void RemoveItem( int nIndex );
-
-    /** 
-     * @param nIndex index of the item
-     * @returns the value of the item at the specified index
-     */
-    const PdfString GetItem( int nIndex ) const;
-
-    /** 
-     * @param nIndex index of the item
-     * @returns the display text of the item or if it has no display text
-     *          its value is returned. This call is equivalent to GetItem() 
-     *          in this case
-     *
-     * \see GetItem
-     */
-    const PdfString GetItemDisplayText( int nIndex ) const;
-
-    /**
-     * \returns the number of items in this list
-     */
-    size_t GetItemCount() const;
-
-    /** Sets the currently selected item
-     *  \param nIndex index of the currently selected item
-     */
-    void SetSelectedIndex( int nIndex );
-
-    /** Sets the currently selected item
-     *
-     *  \returns the selected item or -1 if no item was selected
-     */
-    int GetSelectedIndex() const;
-
-    /** 
-     * \returns true if this PdfListField is a PdfComboBox and false
-     *               if it is a PdfListBox
-     */
-    bool IsComboBox() const;
-
-    /** 
-     *  Enable/disable spellchecking for this combobox
-     *
-     *  \param bSpellcheck if true spellchecking will be enabled
-     *
-     *  combobox are spellchecked by default
-     */
-    void SetSpellcheckingEnabled( bool bSpellcheck );
-    
-    /** 
-     *  \returns true if spellchecking is enabled for this combobox
-     */
-    bool IsSpellcheckingEnabled() const;
-
-    /**
-     * Enable or disable sorting of items.
-     * The sorting does not happen in acrobat reader
-     * but whenever adding items using PoDoFo or another
-     * PDF editing application.
-     *
-     * \param bSorted enable/disable sorting
-     */
-    void SetSorted( bool bSorted );
-
-    /**
-     * \returns true if sorting is enabled
-     */
-    bool IsSorted() const;
-
-    /**
-     * Sets wether multiple items can be selected by the
-     * user in the list.
-     *
-     * \param bMulti if true multiselect will be enabled
-     *
-     * By default multiselection is turned off.
-     */
-    void SetMultiSelect( bool bMulti );
-
-    /** 
-     * \returns true if multi selection is enabled
-     *               for this list
-     */
-    bool IsMultiSelect() const;
-
-    void SetCommitOnSelectionChange( bool bCommit );
-    bool IsCommitOnSelectionChange() const;
-};
-
-/** A combo box with a drop down list of items.
- */
-class PODOFO_DOC_API PdfComboBox : public PdfListField
-{
-    friend class PdfField;
-private:
-    /** Create a new PdfComboBox
-     */
-    PdfComboBox( PdfObject *pObject, PdfAnnotation* pWidget );
-
-public:
-    /** Create a new PdfComboBox
-     */
-    PdfComboBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfTextField
-     */
-    PdfComboBox( PdfPage* pPage, const PdfRect & rRect);
-
-    /**
-     * Sets the combobox to be editable
-     *
-     * \param bEdit if true the combobox can be edited by the user
-     *
-     * By default a combobox is not editable
-     */
-    void SetEditable( bool bEdit );
-
-    /** 
-     *  \returns true if this is an editable combobox
-     */
-    bool IsEditable() const;
-
-};
-
-/** A list box
- */
-class PODOFO_DOC_API PdfListBox : public PdfListField
-{
-    friend class PdfField;
- private:
-    /** Create a new PdfListBox
-     */
-     PdfListBox( PdfObject *pObject, PdfAnnotation* pWidget );
-
-public:
-    /** Create a new PdfListBox
-     */
-    PdfListBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
-
-    /** Create a new PdfListBox
-     */
-    PdfListBox( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Create a PdfListBox from a PdfField
-     * 
-     *  \param rhs a PdfField that is a PdfComboBox
-     *
-     *  Raises an error if PdfField::GetType() != EPdfField::ListBox
-     */
-    PdfListBox( const PdfField & rhs );
-
-};
-
-};
-
-#endif // _PDF_ACRO_FORM_H__PDF_NAMES_TREE_H_
+#endif // PDF_FIELD_H

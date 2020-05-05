@@ -50,7 +50,7 @@ class PODOFO_DOC_API PdfEncodingDifference {
     struct TDifference {
         int         nCode;
         PdfName     name;
-        pdf_utf16be unicodeValue;
+        char32_t unicodeValue;
     };
 
     typedef std::vector<TDifference>                 TVecDifferences;
@@ -78,7 +78,7 @@ class PODOFO_DOC_API PdfEncodingDifference {
      *  \see AddDifference if you know the name of the code point
      *       use the overload below which is faster
      */
-    void AddDifference( int nCode, pdf_utf16be unicodeValue );
+    void AddDifference( int nCode, char32_t unicodeValue );
 
     /** Add a difference to the object.
      * 
@@ -87,7 +87,7 @@ class PODOFO_DOC_API PdfEncodingDifference {
      *  \param rName name of the different code point or .notdef if none
      *  \param bExplicitKeys if true, the unicode value is set to nCode as rName is meaningless (Type3 fonts)
      */
-    void AddDifference( int nCode, pdf_utf16be unicodeValue, const PdfName & rName, bool bExplicitNames = false );
+    void AddDifference( int nCode, char32_t unicodeValue, const PdfName & rName, bool bExplicitNames = false );
 
     /** Tests if the specified code is part of the 
      *  differences.
@@ -99,9 +99,9 @@ class PODOFO_DOC_API PdfEncodingDifference {
      *
      *  \returns true if the code is part of the difference
      */
-    bool Contains( int nCode, PdfName & rName, pdf_utf16be & rValue ) const;
+    bool Contains( int nCode, PdfName & rName, char32_t & rValue ) const;
 
-    bool ContainsUnicodeValue( pdf_utf16be unicodeValue, char &rValue ) const;
+    bool ContainsUnicodeValue( char32_t unicodeValue, char &rValue ) const;
 
     /** Convert the PdfEncodingDifference to an array
      *
@@ -214,14 +214,14 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *  \param rName a standard character name
      *  \returns an unicode code point
      */
-    static pdf_utf16be NameToUnicodeID( const PdfName & rName );
+    static char32_t NameToUnicodeID( const PdfName & rName );
 
     /** Convert an unicode code point to a standard character name
      * 
      *  \param inCodePoint a code point
      *  \returns a standard character name of /.notdef if none could be found
      */
-    static PdfName UnicodeIDToName( pdf_utf16be inCodePoint );
+    static PdfName UnicodeIDToName( char32_t inCodePoint );
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.
@@ -282,7 +282,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  Will throw an exception if nIndex is out of range.
      */
-    pdf_utf16be GetCharCode( int nIndex ) const override;
+    char32_t GetCharCode( int nIndex ) const override;
 
  protected:
 

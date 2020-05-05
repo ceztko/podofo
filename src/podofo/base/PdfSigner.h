@@ -35,7 +35,7 @@
 
 #include <string>
 #include "../doc/PdfMemDocument.h"
-#include "../doc/PdfSignatureField.h"
+#include "../doc/PdfSignature.h"
 
 namespace PoDoFo
 {
@@ -68,7 +68,7 @@ namespace PoDoFo
     };
 
     void SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
-        PdfSignatureField& signature, PdfSignFlags flags = PdfSignFlags::None);
+        PdfSignature& signature, PdfSignFlags flags = PdfSignFlags::None);
 }
 
 #endif // PDF_READER_H

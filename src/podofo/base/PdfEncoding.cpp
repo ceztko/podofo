@@ -59,7 +59,6 @@ using namespace std;
 
 using namespace PoDoFo;
 
-static string getStringUtf8(const PdfString &str);
 static void readNextVariantSequence(PdfVariant& variant, PdfContentsTokenizer& tokenizer,
     const string_view& endSequenceKeyword, bool &endOfSequence);
 
@@ -85,19 +84,17 @@ PdfString PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont
     (void)pFont;
 
     if (m_toUnicode.empty())
-        return PdfString((const pdf_utf8 *)"", 0);
+        return PdfString();
 
     return convertToUnicode( rString, m_toUnicode, m_maxCodeRangeSize);
 }
 
 PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const UnicodeMap &map, unsigned maxCodeRangeSize)
 {
-    size_t lLen = rEncodedString.GetLength();
+    auto& rawstr = rEncodedString.GetRawData();
     string u8str;
-    u8str.reserve(lLen);
-
-    const char * pCurr = rEncodedString.GetString();
-    const char * pEnd = pCurr + lLen;
+    const char * pCurr = rawstr.data();
+    const char * pEnd = pCurr + rawstr.size();
     while (pCurr != pEnd)
     {
         /*
@@ -134,7 +131,7 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
         }
     }
     
-    PdfString ret((const pdf_utf8*)u8str.data(), u8str.size());
+    PdfString ret({ u8str.data(), u8str.size() });
     return ret;
 }
 
@@ -143,10 +140,7 @@ PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString &rString, co
     if (m_toUnicode.empty())
         return PdfRefCountedBuffer();
 
-    if ( rString.IsUnicode() )
-        return convertToEncoding( rString, m_toUnicode, pFont );
-    else
-        return convertToEncoding( rString.ToUnicode(), m_toUnicode, pFont );
+    return convertToEncoding( rString, m_toUnicode, pFont );
 }
 
 PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, const UnicodeMap &map, const PdfFont *pFont )
@@ -227,7 +221,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             {
                                 auto &dst = arr[i];
                                 if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
-                                    map[{ codeSize, srcCodeLo + i }] = getStringUtf8(dst.GetString());
+                                    map[{ codeSize, srcCodeLo + i }] = dst.GetString().GetString();
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetString();
                                 else
@@ -237,7 +231,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            string dstCodeLo = getStringUtf8(var->GetString());
+                            string dstCodeLo = var->GetString().GetString();
                             handle_beginbfrange_String(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else if (var->IsName())
@@ -271,7 +265,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            mappedstr = getStringUtf8(var->GetString());
+                            mappedstr = var->GetString().GetString();
                         }
                         else if (var->IsName())
                         {
@@ -404,11 +398,11 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
 
     const PdfString &str = var.GetString();
     uint32_t ret = 0;
-    const char *arr = str.GetString();
+    auto &rawstr = str.GetString();
     unsigned len = (unsigned)str.GetLength();
     for (unsigned i = 0; i < len; i++)
     {
-        uint8_t code = (uint8_t)arr[len - 1 - i];
+        uint8_t code = (uint8_t)rawstr[len - 1 - i];
         ret += code << i * 8;
     }
 
@@ -432,10 +426,10 @@ PdfSimpleEncoding::~PdfSimpleEncoding()
 void PdfSimpleEncoding::InitEncodingTable() 
 {
     unique_lock<mutex> lock(m_mutex);
-	// CVE-2017-7379 - previously lTableLength was 0xffff, but pdf_utf16be characters can be in range 0..0xffff so this
+	// CVE-2017-7379 - previously lTableLength was 0xffff, but char32_t characters can be in range 0..0xffff so this
 	// caused out-by-one heap overflow when character 0xffff was encoded
-    const long         lTableLength     = numeric_limits<pdf_utf16be>::max() + 1;
-    const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
+    const long         lTableLength     = numeric_limits<char32_t>::max() + 1;
+    const char32_t* cpUnicodeTable   = this->GetToUnicodeTable();
 
     if( !m_pEncodingTable ) // double check
     {
@@ -459,7 +453,7 @@ void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     rDictionary.AddKey( PdfName("Encoding"), m_name );
 }
 
-pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
+char32_t PdfSimpleEncoding::GetCharCode( int nIndex ) const
 {
     if( nIndex < this->GetFirstChar() ||
         nIndex > this->GetLastChar() )
@@ -467,13 +461,8 @@ pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
-    const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    return ((cpUnicodeTable[nIndex] & 0xff00) >> 8) | ((cpUnicodeTable[nIndex] & 0xff) << 8);
-#else
+    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
     return cpUnicodeTable[nIndex];
-#endif // PODOFO_IS_LITTLE_ENDIAN
 
 }
 
@@ -485,37 +474,18 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     }
     else
     {
-        const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
-        size_t lLen = rEncodedString.GetLength();
-        
-        if( lLen  == 0 )
-            return PdfString((const pdf_utf8 *)"", 0);
-        
-        pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(podofo_calloc( (lLen + 1), sizeof(pdf_utf16be)));
-        if( !pszStringUtf16 )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-        
-        const char* pszString = rEncodedString.GetString();
-        for(size_t i = 0 ; i < lLen ; i++)
-        {
-#ifdef PODOFO_IS_BIG_ENDIAN
-            pszStringUtf16[i] = cpUnicodeTable[ static_cast<unsigned char>(*pszString) ];
-#else
-            pszStringUtf16[i] =
-            ((( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] << 8 ) & 0xff00) |
-             (( cpUnicodeTable[ static_cast<unsigned char>(*pszString) ] >> 8 ) & 0x00ff));
-#endif // PODOFO_IS_BIG_ENDIAN
-            ++pszString;
-        }
-        
-        pszStringUtf16[lLen] = 0;
-        
-        PdfString sStr( pszStringUtf16 );
-        podofo_free( pszStringUtf16 );
-        
-        return sStr;
+        const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
+        auto &rawstr = rEncodedString.GetRawData();
+        if (rawstr.size() == 0)
+            return PdfString();
+
+        string u8str;
+        u8str.reserve(rawstr.size());
+        const char* pszString = rawstr.data();
+        for(size_t i = 0 ; i < rawstr.size(); i++)
+            utf8::append(cpUnicodeTable[static_cast<unsigned char>(rawstr[i])], u8str);
+
+        return PdfString(u8str);;
     }
 }
 
@@ -527,59 +497,28 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
     }
     else
     {
+        // FIX-ME: the following is pure garbage. It's completely wrong
+        // The m_pEncodingTable is malformed and this will not work in the general case
         if( !m_pEncodingTable )
             const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
-        
-        PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
-        size_t lLen = sSrc.GetCharacterLength();
-        
-        if( !lLen )
-            return PdfRefCountedBuffer();
-        
-        char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
-        if( !pDest )
+
+        string buffer;
+
+        auto& str = rString.GetString();
+        for (size_t i = 0; i < str.size(); i++)
         {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
+            buffer.push_back(m_pEncodingTable[str[i]]);
         }
         
-        const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();
-        char*              pCur     = pDest;
-        long               lNewLen  = 0L;
-        
-        for (size_t i = 0; i < lLen; i++)
-        {
-            pdf_utf16be val = pszUtf16[i];
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-            
-            *pCur = m_pEncodingTable[val];
-            if( *pCur ) // ignore 0 characters, as they cannot be converted to the current encoding
-            {
-                ++pCur;
-                ++lNewLen;
-            }
-        }
-        
-        *pCur = '\0';
-        
-        
-        PdfRefCountedBuffer cDest( lNewLen );
-        memcpy( cDest.GetBuffer(), pDest, lNewLen );
-        podofo_free( pDest );
-        
+        PdfRefCountedBuffer cDest(buffer.data(), buffer.size());
         return cDest;
     }
 }
 
-char PdfSimpleEncoding::GetUnicodeCharCode(pdf_utf16be unicodeValue) const
+char PdfSimpleEncoding::GetUnicodeCharCode(char32_t unicodeValue) const
 {
     if( !m_pEncodingTable )
         const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    unicodeValue = ((unicodeValue & 0xff00) >> 8) | ((unicodeValue & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
 
     return m_pEncodingTable[unicodeValue];
 }
@@ -712,12 +651,12 @@ const unordered_map<uint16_t, char>& PoDoFo::PdfDocEncoding::GetUTF8ToPdfEncodin
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfDocEncoding::GetToUnicodeTable() const
+const char32_t* PdfDocEncoding::GetToUnicodeTable() const
 {
     return PdfDocEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfDocEncoding::s_cEncoding[256] = {
+const char32_t PdfDocEncoding::s_cEncoding[256] = {
     0x0000,
     0x0001,
     0x0002,
@@ -994,9 +933,6 @@ void PdfWinAnsiEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
         {
             arDifferences.push_back(PdfObject((int64_t)i));
             unsigned short shCode = this->GetToUnicodeTable()[i];
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
-#endif
             arDifferences.push_back( PdfDifferenceEncoding::UnicodeIDToName(shCode) );
         }
     }
@@ -1014,12 +950,12 @@ void PdfWinAnsiEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     }
 }
 
-const pdf_utf16be* PdfWinAnsiEncoding::GetToUnicodeTable() const
+const char32_t* PdfWinAnsiEncoding::GetToUnicodeTable() const
 {
     return PdfWinAnsiEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfWinAnsiEncoding::s_cEncoding[256] = {
+const char32_t PdfWinAnsiEncoding::s_cEncoding[256] = {
     0x0000, // NULL
     0x0001, // START OF HEADING
     0x0002, // START OF TEXT
@@ -1285,12 +1221,12 @@ const pdf_utf16be PdfWinAnsiEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfMacRomanEncoding::GetToUnicodeTable() const
+const char32_t* PdfMacRomanEncoding::GetToUnicodeTable() const
 {
     return PdfMacRomanEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfMacRomanEncoding::s_cEncoding[256] = {
+const char32_t PdfMacRomanEncoding::s_cEncoding[256] = {
     0x0000, // NULL
     0x0001, // START OF HEADING
     0x0002, // START OF TEXT
@@ -1561,12 +1497,12 @@ const pdf_utf16be PdfMacRomanEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfMacExpertEncoding::GetToUnicodeTable() const
+const char32_t* PdfMacExpertEncoding::GetToUnicodeTable() const
 {
     return PdfMacExpertEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfMacExpertEncoding::s_cEncoding[256] = {
+const char32_t PdfMacExpertEncoding::s_cEncoding[256] = {
 // \00x
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -1618,12 +1554,12 @@ const pdf_utf16be PdfMacExpertEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfStandardEncoding::GetToUnicodeTable() const
+const char32_t* PdfStandardEncoding::GetToUnicodeTable() const
 {
     return PdfStandardEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
+const char32_t PdfStandardEncoding::s_cEncoding[256] = {
 //0, // uncomment to check compiler error cause of 257 members
  // 0x00..0x1f undefined:
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -1855,12 +1791,12 @@ const pdf_utf16be PdfStandardEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfSymbolEncoding::GetToUnicodeTable() const
+const char32_t* PdfSymbolEncoding::GetToUnicodeTable() const
 {
     return PdfSymbolEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfSymbolEncoding::s_cEncoding[256] = {
+const char32_t PdfSymbolEncoding::s_cEncoding[256] = {
 //0, // uncomment to check compiler error cause of 257 members
  // 0x00..0x1f undefined:
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -2082,12 +2018,12 @@ const pdf_utf16be PdfSymbolEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be* PdfZapfDingbatsEncoding::GetToUnicodeTable() const
+const char32_t* PdfZapfDingbatsEncoding::GetToUnicodeTable() const
 {
     return PdfZapfDingbatsEncoding::s_cEncoding;
 }
 
-const pdf_utf16be PdfZapfDingbatsEncoding::s_cEncoding[256] = {
+const char32_t PdfZapfDingbatsEncoding::s_cEncoding[256] = {
 //0, // uncomment to check compiler error cause of 257 members
  // 0x00..0x1f undefined:
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -2317,7 +2253,7 @@ const pdf_utf16be PdfZapfDingbatsEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const pdf_utf16be PdfWin1250Encoding::s_cEncoding[256] = {
+const char32_t PdfWin1250Encoding::s_cEncoding[256] = {
     0x0000,  // NULL
     0x0001,  // START OF HEADING
     0x0002,  // START OF TEXT
@@ -2576,7 +2512,7 @@ const pdf_utf16be PdfWin1250Encoding::s_cEncoding[256] = {
     0x02D9   // DOT ABOVE
 };
 
-const pdf_utf16be* PdfWin1250Encoding::GetToUnicodeTable() const
+const char32_t* PdfWin1250Encoding::GetToUnicodeTable() const
 {
     return PdfWin1250Encoding::s_cEncoding;
 }
@@ -2590,7 +2526,7 @@ const pdf_utf16be* PdfWin1250Encoding::GetToUnicodeTable() const
 // 
 // -----------------------------------------------------
 
-const pdf_utf16be PdfIso88592Encoding::s_cEncoding[256] = {
+const char32_t PdfIso88592Encoding::s_cEncoding[256] = {
     0x0000,  // NULL
     0x0001,  // START OF HEADING
     0x0002,  // START OF TEXT
@@ -2849,25 +2785,9 @@ const pdf_utf16be PdfIso88592Encoding::s_cEncoding[256] = {
     0x02D9  // DOT ABOVE
 };
 
-const pdf_utf16be* PdfIso88592Encoding::GetToUnicodeTable() const
+const char32_t* PdfIso88592Encoding::GetToUnicodeTable() const
 {
     return PdfIso88592Encoding::s_cEncoding;
-}
-
-string getStringUtf8(const PdfString &str)
-{
-    // OPTIMIZE-ME: Conversion to utf-8 without copy
-    auto &strbuf = str.GetBuffer();
-    PdfRefCountedBuffer buffer(strbuf.GetSize());
-    memcpy(buffer.GetBuffer(), strbuf.GetBuffer(), strbuf.GetSize());
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    PdfString::SwapBytes(buffer.GetBuffer(), buffer.GetSize());
-#endif // PODOFO_IS_LITTLE_ENDIA
-
-    string ret;
-    char16_t *u16str = (char16_t *)buffer.GetBuffer();
-    utf8::utf16to8(u16str, u16str + std::char_traits<char16_t>::length(u16str), back_inserter(ret));
-    return ret;
 }
 
 // Read variant from a sequence, unless it's the end of it

@@ -69,16 +69,12 @@ public:
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
      */
-    PdfName(const std::string_view& view);
-    PdfName(const std::string& str);
+    PdfName(const std::string_view & str);
+    PdfName(const char* str);
+    PdfName(const std::string &str);
 
-    /** Create a new PdfName object.
-     *  \param pszName the unescaped value of this name. Please specify
-     *                 the name without the leading '/'.
-     *  \param lLen    length of the name
-     */
-    PdfName(const char* pszName);
-    PdfName(const char* pszName, size_t lLen);
+    // Delete constructor with nullptr
+    PdfName(nullptr_t) = delete;
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -94,16 +90,6 @@ public:
      *  \return A new PdfName
      */
     static PdfName FromEscaped(const std::string_view& sName);
-
-    /** Create a new PdfName object from a string containing an escaped
-     *  name string without the leading / .
-     *  \param pszName A string containing the escaped name
-     *  \param ilength length of the escaped string data. If a length
-     *                 of 0 is passed, the string data is expected to 
-     *                 be a zero terminated string.
-     *  \return A new PdfName
-     */
-    static PdfName FromEscaped(const char * pszName, size_t ilength = 0 );
 
     /** \return an escaped representation of this name
      *          without the leading / .
@@ -132,6 +118,10 @@ public:
      *           name object
      */
     size_t GetLength() const;
+
+    /** \returns the raw data of this name object
+     */
+    const std::string& GetRawData() const;
 
     /** Assign another name to this object
      *  \param rhs another PdfName object

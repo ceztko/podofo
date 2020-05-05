@@ -34,7 +34,7 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfSignatureField.h"
+#include "PdfSignature.h"
 
 #include <doc/PdfDocument.h>
 #include "../base/PdfDictionary.h"
@@ -49,20 +49,20 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect)
-	:PdfField(EPdfField::Signature, pPage, rRect), m_pSignatureObj(nullptr)
+PdfSignature::PdfSignature( PdfPage* pPage, const PdfRect & rRect)
+	: PdfField(EPdfField::Signature, pPage, rRect), m_pSignatureObj(nullptr)
 {
 
     Init(*pPage->GetDocument().GetAcroForm());
 }
 
-PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+PdfSignature::PdfSignature( PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
 	: PdfField(EPdfField::Signature, pWidget, pDoc, insertInAcroform), m_pSignatureObj(nullptr)
 {
     Init(*pDoc.GetAcroForm());
 }
 
-PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget )
+PdfSignature::PdfSignature( PdfObject* pObject, PdfAnnotation* pWidget )
 	: PdfField(EPdfField::Signature, pObject, pWidget ), m_pSignatureObj(nullptr)
 {
     // do not call Init() here
@@ -72,7 +72,7 @@ PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget
     }
 }
 
-void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+void PdfSignature::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
     if( !pObject )
     {
@@ -84,7 +84,7 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotation
     this->GetAppearanceCharacteristics( true );
 }
 
-void PdfSignatureField::Init(PdfAcroForm& acroForm)
+void PdfSignature::Init(PdfAcroForm& acroForm)
 {
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     // This will open signature panel when inspecting PDF with acrobat,
@@ -92,7 +92,7 @@ void PdfSignatureField::Init(PdfAcroForm& acroForm)
     acroForm.GetObject()->GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
 }
 
-void PdfSignatureField::SetSignerName(const PdfString & rsText)
+void PdfSignature::SetSignerName(const PdfString & rsText)
 {
     if (!m_pSignatureObj)
     {
@@ -102,7 +102,7 @@ void PdfSignatureField::SetSignerName(const PdfString & rsText)
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Name"), rsText);
 }
 
-void PdfSignatureField::SetSignatureReason(const PdfString & rsText)
+void PdfSignature::SetSignatureReason(const PdfString & rsText)
 {
     if( !m_pSignatureObj )
     {
@@ -115,7 +115,7 @@ void PdfSignatureField::SetSignatureReason(const PdfString & rsText)
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Reason"), rsText);
 }
 
-void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
+void PdfSignature::SetSignatureDate(const PdfDate &sigDate)
 {
     if( !m_pSignatureObj )
     {
@@ -129,7 +129,7 @@ void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
     m_pSignatureObj->GetDictionary().AddKey(PdfName("M"), sDate);
 }
 
-void PdfSignatureField::PrepareForSigning(const string_view& filter,
+void PdfSignature::PrepareForSigning(const string_view& filter,
     const string_view& subFilter, const PdfSignatureBeacons& beacons)
 {
     EnsureSignatureObject();
@@ -147,7 +147,7 @@ void PdfSignatureField::PrepareForSigning(const string_view& filter,
     m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfVariant(byteRangeData) );
 }
 
-void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
+void PdfSignature::SetSignatureLocation( const PdfString & rsText )
 {
     if( !m_pSignatureObj )
     {
@@ -160,7 +160,7 @@ void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Location"), rsText);
 }
 
-void PdfSignatureField::SetSignatureCreator( const PdfName & creator )
+void PdfSignature::SetSignatureCreator( const PdfName & creator )
 {
     if( !m_pSignatureObj )
     {
@@ -191,7 +191,7 @@ void PdfSignatureField::SetSignatureCreator( const PdfName & creator )
     app->GetDictionary().AddKey( PdfName( "Name" ), creator );
 }
 
-void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
+void PdfSignature::AddCertificationReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
 {
     if( !m_pSignatureObj )
     {
@@ -230,7 +230,7 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Reference"), PdfVariant(refers));
 }
 
-const PdfObject * PdfSignatureField::GetSignatureReason() const
+const PdfObject * PdfSignature::GetSignatureReason() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -238,7 +238,7 @@ const PdfObject * PdfSignatureField::GetSignatureReason() const
     return m_pSignatureObj->GetDictionary().GetKey("Reason");
 }
 
-const PdfObject * PdfSignatureField::GetSignatureLocation() const
+const PdfObject * PdfSignature::GetSignatureLocation() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -246,7 +246,7 @@ const PdfObject * PdfSignatureField::GetSignatureLocation() const
     return m_pSignatureObj->GetDictionary().GetKey("Location");
 }
 
-const PdfObject * PdfSignatureField::GetSignatureDate() const
+const PdfObject * PdfSignature::GetSignatureDate() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -254,7 +254,7 @@ const PdfObject * PdfSignatureField::GetSignatureDate() const
     return m_pSignatureObj->GetDictionary().GetKey("M");
 }
 
-const PdfObject * PdfSignatureField::GetSignerName() const
+const PdfObject * PdfSignature::GetSignerName() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -262,12 +262,12 @@ const PdfObject * PdfSignatureField::GetSignerName() const
     return m_pSignatureObj->GetDictionary().GetKey("Name");
 }
 
-PdfObject* PdfSignatureField::GetSignatureObject( void ) const
+PdfObject* PdfSignature::GetSignatureObject( void ) const
 {
     return m_pSignatureObj;
 }
 
-void PdfSignatureField::EnsureSignatureObject( void )
+void PdfSignature::EnsureSignatureObject( void )
 {
     if( m_pSignatureObj != nullptr )
         return;
