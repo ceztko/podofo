@@ -98,7 +98,7 @@ PdfString PdfString::FromHexData(const string_view& view, PdfEncrypt* pEncrypt )
 {
     size_t lLen = view.size();
     auto buffer = std::make_shared<string>();
-    buffer->resize(lLen % 2 ? (lLen + 1) >> 1 : lLen >> 1);
+    buffer->reserve(lLen % 2 ? (lLen + 1) >> 1 : lLen >> 1);
 
     char val;
     char cDecodedByte = 0;

@@ -398,8 +398,8 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
 
     const PdfString &str = var.GetString();
     uint32_t ret = 0;
-    auto &rawstr = str.GetString();
-    unsigned len = (unsigned)str.GetLength();
+    auto &rawstr = str.GetRawData();
+    unsigned len = (unsigned)rawstr.length();
     for (unsigned i = 0; i < len; i++)
     {
         uint8_t code = (uint8_t)rawstr[len - 1 - i];
