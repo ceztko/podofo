@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
+ *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2018-2020 by Francesco Pretto                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -30,45 +30,70 @@
  *   version.  If you delete this exception statement from all source      *
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
-#ifndef PDF_SIGNER_H
-#define PDF_SIGNER_H
+#ifndef PDF_TEXT_STATE_H
+#define PDF_TEXT_STATE_H
 
-#include <string>
-#include "../doc/PdfMemDocument.h"
-#include "../doc/PdfSignature.h"
+#include "podofo/base/PdfDefines.h"
 
 namespace PoDoFo
 {
-    class PdfSigner
+    class PODOFO_DOC_API PdfTextState
     {
     public:
-        virtual ~PdfSigner();
-        /** Get the expected signature size
+        PdfTextState();
+
+    public:
+        /** Set the font size of this metrics object for width and height
+         *  calculations.
+         *  This is typically called from PdfFont for you.
          *
-         * Will be used to parepare the pdf file for signing.
-         * By default it run a dry run computing of the signature
+         *  \param fSize font size in points
          */
-        virtual unsigned GetSignatureSize();
-        virtual void Reset() = 0;
-        virtual void AppendData(const std::string_view& data) = 0;
-        /**
-         * \param dryrun The call is just used to infer signature size
+        inline void SetFontSize(double fSize) { m_FontSize = fSize; }
+
+        /** Retrieve the current font size of this metrics object
+         *  \returns the current font size
          */
-        virtual std::string ComputeSignature(bool dryrun) = 0;
-        virtual std::string GetSignatureFilter() const;
-        virtual std::string GetSignatureSubFilter() const = 0;
-    };
+        inline double GetFontSize() const { return m_FontSize; }
 
-    enum class PdfSignFlags
-    {
-        None = 0,
-        // TODO:
-        // NoIncrementalUpdate = 1,
-        // NoAcroFormUpdate
-    };
+        /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
+         *  This is typically called from PdfFont for you.
+         *
+         *  \param fScale scaling in percent
+         */
+        inline void SetFontScale(double fScale) { m_FontScale = fScale; }
 
-    void SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
-        PdfSignature& signature, PdfSignFlags flags = PdfSignFlags::None);
+        /** Retrieve the current horizontal scaling of this metrics object
+         *  \returns the current font scaling
+         */
+        inline double GetFontScale() const { return m_FontScale; }
+
+        /** Set the character spacing of this metrics object
+         *  \param fCharSpace character spacing in percent
+         */
+        inline void SetCharSpace(double fCharSpace) { m_CharSpace = fCharSpace; }
+
+        /** Retrieve the current character spacing of this metrics object
+         *  \returns the current font character spacing
+         */
+        inline double GetCharSpace() const { return m_CharSpace; }
+
+        /** Set the word spacing of this metrics object
+         *  \param fWordSpace word spacing in PDF units
+         */
+        inline void SetWordSpace(double fWordSpace) { m_WordSpace = fWordSpace; }
+
+        /** Retrieve the current word spacing of this metrics object
+         *  \returns the current font word spacing in PDF units
+         */
+        inline double GetWordSpace() const { return m_WordSpace; }
+
+    private:
+        double m_FontSize;
+        double m_FontScale;
+        double m_CharSpace;
+        double m_WordSpace;
+    };
 }
 
-#endif // PDF_SIGNER_H
+#endif // PDF_TEXT_STATE_H

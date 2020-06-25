@@ -55,6 +55,7 @@ class PODOFO_DOC_API PdfFontMetrics
 {
 protected:
     PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix );
+
 public:
     virtual ~PdfFontMetrics();
 
@@ -88,59 +89,10 @@ public:
      */
     virtual void GetBoundingBox( PdfArray & array ) const = 0;
 
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param rsString a PdfString from which the width shall be calculated
-     *  \returns the width in PDF units
-     *
-     *  This is an overloaded method for your convinience!
-     */
-    double StringWidth( const PdfString & rsString ) const;
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in PDF units
-     */
-    double StringWidth(const std::string_view &view) const;
-
-    /** Retrieve the width of a given text string in 1/1000th mm when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long StringWidthMM(const std::string_view& view) const;
-
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    virtual double CharWidth( unsigned char c ) const = 0;
-
-    // Peter Petrov 20 March 2009
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    virtual double UnicodeCharWidth( unsigned short c ) const = 0;
-
-    /** Retrieve the width of the given character in 1/1000th mm in the current font
-     *  \param c character
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long CharWidthMM( unsigned char c ) const;
-
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
      */
     virtual double GetLineSpacing() const = 0;
-
-    /** Retrieve the line spacing for this font
-     *  \returns the linespacing in 1/1000th mm
-     */
-    unsigned long GetLineSpacingMM() const;
 
     /** Get the width of the underline for the current
      *  font size in PDF units
@@ -148,23 +100,11 @@ public:
      */
     virtual double GetUnderlineThickness() const = 0;
 
-    /** Get the width of the underline for the current
-     *  font size in 1/1000th mm
-     *  \returns the thickness of the underline in 1/1000th mm
-     */
-    unsigned long GetUnderlineThicknessMM() const;
-
     /** Return the position of the underline for the current font
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
     virtual double GetUnderlinePosition() const = 0;
-
-    /** Return the position of the underline for the current font
-     *  size in 1/1000th mm
-     *  \returns the underline position in 1/1000th mm
-     */
-    long GetUnderlinePositionMM() const;
 
     /** Return the position of the strikeout for the current font
      *  size in PDF units
@@ -172,23 +112,30 @@ public:
      */
     virtual double GetStrikeOutPosition() const = 0;
 
-    /** Return the position of the strikeout for the current font
-     *  size in 1/1000th mm
-     *  \returns the underline position in 1/1000th mm
-     */
-    unsigned long GetStrikeOutPositionMM() const;
-
     /** Get the width of the strikeout for the current
      *  font size in PDF units
      *  \returns the thickness of the strikeout in PDF units
      */
-    virtual double GetStrikeoutThickness() const = 0;
+    virtual double GetStrikeOutThickness() const = 0;
 
-    /** Get the width of the strikeout for the current
-     *  font size in 1/1000th mm
-     *  \returns the thickness of the strikeout in 1/1000th mm
+    /** Get the ascent of this font in PDF
+     *  units for the current font size.
+     *
+     *  \returns the ascender for this font
+     *
+     *  \see GetAscent
      */
-    unsigned long GetStrikeoutThicknessMM() const;
+    virtual double GetAscent() const = 0;
+
+    /** Get the descent of this font in PDF
+     *  units for the current font size.
+     *  This value is usually negative!
+     *
+     *  \returns the descender for this font
+     *
+     *  \see GetDescent
+     */
+    virtual double GetDescent() const = 0;
 
     /** Get a pointer to the path of the font file.
      *  \returns a zero terminated string containing the filename of the font file
@@ -220,93 +167,13 @@ public:
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
      */
-    virtual  unsigned int GetWeight() const = 0;
-
-    /** Get the ascent of this font in PDF
-     *  units for the current font size.
-     *
-     *  \returns the ascender for this font
-     *
-     *  \see GetPdfAscent
-     */
-    virtual double GetAscent() const = 0;
-
-    /** Get the ascent of this font
-     *  Used to build the font dictionay
-     *  \returns the ascender for this font
-     *
-     *  \see GetAscent
-     */
-    virtual double GetPdfAscent() const = 0;
-
-    /** Get the descent of this font in PDF
-     *  units for the current font size.
-     *  This value is usually negative!
-     *
-     *  \returns the descender for this font
-     *
-     *  \see GetPdfDescent
-     */
-    virtual double GetDescent() const = 0;
-
-    /** Get the descent of this font
-     *  Used to build the font dictionay
-     *  \returns the descender for this font
-     *
-     *  \see GetDescent
-     */
-    virtual double GetPdfDescent() const = 0;
+    virtual unsigned int GetWeight() const = 0;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
      *  \returns the italic angle of this font.
      */
     virtual int GetItalicAngle() const = 0;
-
-    /** Set the font size of this metrics object for width and height
-     *  calculations.
-     *  This is typically called from PdfFont for you.
-     *
-     *  \param fSize font size in points
-     */
-    inline void SetFontSize( float fSize ) { m_fFontSize = fSize; }
-
-    /** Retrieve the current font size of this metrics object
-     *  \returns the current font size
-     */
-    inline float GetFontSize() const { return m_fFontSize; }
-
-    /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
-     *  This is typically called from PdfFont for you.
-     *
-     *  \param fScale scaling in percent
-     */
-    inline void SetFontScale( float fScale ) { m_fFontScale = fScale; }
-
-    /** Retrieve the current horizontal scaling of this metrics object
-     *  \returns the current font scaling
-     */
-    inline float GetFontScale() const { return m_fFontScale; }
-
-    /** Set the character spacing of this metrics object
-     *  \param fCharSpace character spacing in percent
-     */
-    inline void SetFontCharSpace( float fCharSpace ) { m_fFontCharSpace = fCharSpace; }
-
-    /** Retrieve the current character spacing of this metrics object
-     *  \returns the current font character spacing
-     */
-    inline float GetFontCharSpace() const { return m_fFontCharSpace; }
-
-    /** Set the word spacing of this metrics object
-     *  \param fWordSpace word spacing in PDF units
-     */
-    inline void SetWordSpace( float fWordSpace ) { m_fWordSpace = fWordSpace; }
-
-    /** Retrieve the current word spacing of this metrics object
-     *  \returns the current font word spacing in PDF units
-     */
-    inline float GetWordSpace() const { return m_fWordSpace; }
 
     /**
      *  \returns the fonttype of the loaded font
@@ -348,15 +215,9 @@ public:
 
  protected:
     std::string   m_sFilename;
-    float         m_fFontSize;
-    float         m_fFontScale;
-    float         m_fFontCharSpace;
-    float         m_fWordSpace;
-
-    std::vector<double> m_vecWidth;
-
     EPdfFontType  m_eFontType;
     std::string   m_sFontSubsetPrefix;
+    std::vector<double> m_vecWidth;
 };
 
 };

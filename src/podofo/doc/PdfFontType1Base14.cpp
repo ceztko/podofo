@@ -90,9 +90,9 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
 	
 		
 //			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
-//			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-//			pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-//			pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
+//			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetAscent() );
+//			pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetDescent() );
+//			pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetAscent() ); // m_pMetrics->CapHeight() );
 		 
 
 //		pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1LL) ) );               // m_pMetrics->StemV() );

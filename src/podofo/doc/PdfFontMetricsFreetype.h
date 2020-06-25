@@ -45,8 +45,9 @@ class PdfArray;
 class PdfObject;
 class PdfVariant;
 
-class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
- public:
+class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics
+{
+public:
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
      *  \param pszFilename filename of a truetype file
@@ -130,19 +131,6 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param array write the bounding box to this array.
      */
     void GetBoundingBox( PdfArray & array ) const override;
-    
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    double CharWidth( unsigned char c ) const override;
-
-    // Peter Petrov 20 March 2009
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    double UnicodeCharWidth( unsigned short c ) const override;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
@@ -171,10 +159,29 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  font size in PDF units
      *  \returns the thickness of the strikeout in PDF units
      */
-    double GetStrikeoutThickness() const override;
+    double GetStrikeOutThickness() const override;
+
+    /** Get the ascent of this font in PDF
+     *  units for the current font size.
+     *
+     *  \returns the ascender for this font
+     *
+     *  \see GetAscent
+     */
+    double GetAscent() const override;
+
+    /** Get the descent of this font in PDF
+     *  units for the current font size.
+     *  This value is usually negative!
+     *
+     *  \returns the descender for this font
+     *
+     *  \see GetDescent
+     */
+    double GetDescent() const override;
 
     /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or nullptr string if no postscript name is available.
+     *  \returns the postscript name of the font or NULL string if no postscript name is available.
      */
     const char* GetFontname() const override;
 
@@ -183,41 +190,6 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \returns the weight of this font (500 is normal).
      */
     unsigned int GetWeight() const override;
-
-    /** Get the ascent of this font in PDF
-     *  units for the current font size.
-     *
-     *  \returns the ascender for this font
-     *  
-     *  \see GetPdfAscent
-     */
-    double GetAscent() const override;
-
-    /** Get the ascent of this font
-     *  Used to build the font dictionay
-     *  \returns the ascender for this font
-     *  
-     *  \see GetAscent
-     */
-    double GetPdfAscent() const override;
-
-    /** Get the descent of this font in PDF 
-     *  units for the current font size.
-     *  This value is usually negative!
-     *
-     *  \returns the descender for this font
-     *
-     *  \see GetPdfDescent
-     */
-    double GetDescent() const override;
-
-    /** Get the descent of this font
-     *  Used to build the font dictionay
-     *  \returns the descender for this font
-     *
-     *  \see GetDescent
-     */
-    double GetPdfDescent() const override;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
@@ -266,7 +238,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      * 
      *  \returns the internal freetype handle
      */
-    inline FT_Face GetFace();
+    inline FT_Face GetFace() { return m_pFace; }
  
  private:
     
@@ -309,15 +281,6 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
     PdfRefCountedBuffer m_bufFontData;
     std::vector<double> m_vecWidth;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-FT_Face PdfFontMetricsFreetype::GetFace() 
-{ 
-    return m_pFace; 
-} 
-
  
 };
 

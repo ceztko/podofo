@@ -682,41 +682,38 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, size_t
         this->SetCurrentStrokingColor();
 		
         // Draw underline
-        this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetUnderlineThickness() );
+        this->SetStrokeWidth( m_pFont->GetUnderlineThickness(m_textState) );
         if( m_pFont->IsUnderlined() )
         {
             this->DrawLine( dX,
-                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition(),
-                dX + m_pFont->GetFontMetrics()->StringWidth( sString ),
-                dY + m_pFont->GetFontMetrics()->GetUnderlinePosition() );
+                dY + m_pFont->GetUnderlinePosition(m_textState),
+                dX + m_pFont->StringWidth( sString, m_textState),
+                dY + m_pFont->GetUnderlinePosition(m_textState) );
         }
 
         // Draw strikeout
-        this->SetStrokeWidth( m_pFont->GetFontMetrics()->GetStrikeoutThickness() );
+        this->SetStrokeWidth( m_pFont->GetStrikeOutThickness(m_textState) );
         if( m_pFont->IsStrikeOut() )
         {
             this->DrawLine( dX,
-                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition(),
-                dX + m_pFont->GetFontMetrics()->StringWidth( sString ),
-                dY + m_pFont->GetFontMetrics()->GetStrikeOutPosition() );
+                dY + m_pFont->GetStrikeOutPosition(m_textState),
+                dX + m_pFont->StringWidth( sString, m_textState),
+                dY + m_pFont->GetStrikeOutPosition(m_textState) );
         }
 
         this->Restore();
     }
     
     m_tmpStream << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetString()
-          << " "  << m_pFont->GetFontSize()
+          << " "  << m_textState.GetFontSize()
           << " Tf" << std::endl;
 
     if (currentTextRenderingMode != EPdfTextRenderingMode::Fill) {
         SetCurrentTextRenderingMode();
     }
 
-    //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
-    m_tmpStream << m_pFont->GetFontScale() << " Tz" << std::endl;
-
-    //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
-    m_tmpStream << m_pFont->GetFontCharSpace() * (double)m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << std::endl;
+    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_tmpStream << dX << std::endl
           << dY << std::endl << "Td ";
@@ -747,18 +744,15 @@ void PdfPainter::BeginText( double dX, double dY )
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->GetIndirectReference(), PdfName("Font") );
 
     m_tmpStream << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetString()
-          << " "  << m_pFont->GetFontSize()
+          << " "  << m_textState.GetFontSize()
           << " Tf" << std::endl;
 
     if (currentTextRenderingMode != EPdfTextRenderingMode::Fill) {
         SetCurrentTextRenderingMode();
     }
 
-    //if( m_pFont->GetFontScale() != 100.0F ) - this value is kept between text blocks
-    m_tmpStream << m_pFont->GetFontScale() << " Tz" << std::endl;
-
-    //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
-    m_tmpStream << m_pFont->GetFontCharSpace() * (double)m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << std::endl;
+    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_tmpStream << dX << " " << dY << " Td" << std::endl ;
 
@@ -839,7 +833,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     PdfString sString = this->ExpandTabs( rsText );
 
 	std::vector<PdfString> vecLines = GetMultiLineTextAsLines( dWidth, sString, bSkipSpaces );
-    double dLineGap = m_pFont->GetFontMetrics()->GetLineSpacing() - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetDescent();
+    double dLineGap = m_pFont->GetLineSpacing(m_textState) - m_pFont->GetAscent(m_textState) + m_pFont->GetDescent(m_textState);
     // Do vertical alignment
     switch( eVertical ) 
     {
@@ -847,21 +841,21 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 	    case EPdfVerticalAlignment::Top:
             dY += dHeight; break;
         case EPdfVerticalAlignment::Bottom:
-            dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
+            dY += m_pFont->GetLineSpacing(m_textState) * vecLines.size(); break;
         case EPdfVerticalAlignment::Center:
             dY += (dHeight - 
-                   ((dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0)); 
+                   ((dHeight - (m_pFont->GetLineSpacing(m_textState) * vecLines.size()))/2.0));
             break;
     }
 
-    dY -= (m_pFont->GetFontMetrics()->GetAscent() + dLineGap / (2.0));
+    dY -= (m_pFont->GetAscent(m_textState) + dLineGap / (2.0));
 
     std::vector<PdfString>::const_iterator it = vecLines.begin();
     while( it != vecLines.end() )
     {
         if( (*it).GetLength() )
             this->DrawTextAligned( dX, dY, dWidth, *it, eAlignment );
-        dY -= m_pFont->GetFontMetrics()->GetLineSpacing();
+        dY -= m_pFont->GetLineSpacing(m_textState);
         ++it;
     }
     this->Restore();
@@ -937,15 +931,16 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
 
                 if (!startOfWord)
                 {
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth( 
-                        { pszStartOfCurrentWord, (size_t)(pszCurrentCharacter - pszStartOfCurrentWord) });
+                    dCurWidthOfLine = m_pFont->StringWidth( 
+                        { pszStartOfCurrentWord, (size_t)(pszCurrentCharacter - pszStartOfCurrentWord) },
+                        m_textState);
                 }
                 else
                 {
                     dCurWidthOfLine = 0.0;
                 }
             }
-            else if( ( dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth( *pszCurrentCharacter ) ) > dWidth )
+            else if( ( dCurWidthOfLine + m_pFont->CharWidth( *pszCurrentCharacter, m_textState) ) > dWidth )
             {
                 vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
                 if( bSkipSpaces )
@@ -966,7 +961,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
             }
             else 
             {           
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth( *pszCurrentCharacter );
+                dCurWidthOfLine += m_pFont->CharWidth( *pszCurrentCharacter, m_textState);
             }
 
             startOfWord = true;
@@ -980,7 +975,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
             }
             //else do nothing
 
-            if ((dCurWidthOfLine + m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter)) > dWidth)
+            if ((dCurWidthOfLine + m_pFont->CharWidth(*pszCurrentCharacter, m_textState)) > dWidth)
             {
                 if ( pszLineBegin == pszStartOfCurrentWord )
                 {
@@ -998,7 +993,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                         vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszCurrentCharacter - pszLineBegin) }));
                         pszLineBegin = pszCurrentCharacter;
                         pszStartOfCurrentWord = pszCurrentCharacter;
-                        dCurWidthOfLine = m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter);
+                        dCurWidthOfLine = m_pFont->CharWidth(*pszCurrentCharacter, m_textState);
                     }
                 }
                 else
@@ -1007,12 +1002,12 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
                     // -> Move it to the next one.                    
                     vecLines.push_back(PdfString({ pszLineBegin, (size_t)(pszStartOfCurrentWord - pszLineBegin) }));
                     pszLineBegin = pszStartOfCurrentWord;
-                    dCurWidthOfLine = m_pFont->GetFontMetrics()->StringWidth({ pszStartOfCurrentWord, (size_t)((pszCurrentCharacter - pszStartOfCurrentWord) + 1) });
+                    dCurWidthOfLine = m_pFont->StringWidth({ pszStartOfCurrentWord, (size_t)((pszCurrentCharacter - pszStartOfCurrentWord) + 1) }, m_textState);
                 }
             }
             else 
             {
-                dCurWidthOfLine += m_pFont->GetFontMetrics()->UnicodeCharWidth(*pszCurrentCharacter);
+                dCurWidthOfLine += m_pFont->CharWidth(*pszCurrentCharacter, m_textState);
             }
         }
         ++pszCurrentCharacter;
@@ -1057,10 +1052,10 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
         case EPdfAlignment::Left:
             break;
         case EPdfAlignment::Center:
-            dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) ) / 2.0;
+            dX += (dWidth - m_pFont->StringWidth( rsText, m_textState ) ) / 2.0;
             break;
         case EPdfAlignment::Right:
-            dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) );
+            dX += (dWidth - m_pFont->StringWidth( rsText, m_textState) );
             break;
     }
 
@@ -1177,11 +1172,6 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			break;
 		}
 	}
-
-	// select identical sizes
-	pGlyphFont->SetFontSize( m_pFont->GetFontSize() );
-	pGlyphFont->SetFontCharSpace( m_pFont->GetFontCharSpace() );
-	pGlyphFont->SetFontScale( m_pFont->GetFontScale() );
 
 	PODOFO_ASSERT( code > 32  &&  code <= 127 );
 

@@ -95,9 +95,9 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
     pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
-    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetAscent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetDescent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetAscent() ); // m_pMetrics->CapHeight() );
     pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008

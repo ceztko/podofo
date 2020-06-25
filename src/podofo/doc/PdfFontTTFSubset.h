@@ -79,7 +79,7 @@ public:
      *  @param pMetrics font metrics object for this font
      *  @param nFaceIndex index of the face inside of the font
      */
-    PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics* pMetrics, unsigned short nFaceIndex = 0 );
+    PdfFontTTFSubset( const char* pszFontFileName, const PdfFontMetrics* pMetrics, unsigned short nFaceIndex = 0 );
 
     /** Create a new PdfFontTTFSubset from an existing 
      *  TTF font file using an input device.
@@ -89,7 +89,7 @@ public:
      *  @param eType the type of the font
      *  @param nFaceIndex index of the face inside of the font
      */
-    PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex = 0 );
+    PdfFontTTFSubset( PdfInputDevice* pDevice, const PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex = 0 );
 
     ~PdfFontTTFSubset();
 
@@ -104,6 +104,7 @@ private:
     /** copy constructor, not implemented
      */
     PdfFontTTFSubset(const PdfFontTTFSubset& rhs);
+
     /** assignment operator, not implemented
      */
     PdfFontTTFSubset& operator=(const PdfFontTTFSubset& rhs) = delete;
@@ -129,7 +130,8 @@ private:
 
     /** Information of TrueType tables.
      */
-    class TTrueTypeTable {
+    class TTrueTypeTable
+    {
     public:
         TTrueTypeTable()
             : tag( 0L ), checksum( 0L ), length( 0L ), offset( 0L )
@@ -222,8 +224,7 @@ private:
     unsigned CalculateSubsetSize();
     void WriteTables(PdfRefCountedBuffer& fontData);
 
-private:
-    PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
+    const PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
     EFontFileType   m_eFontFileType;
     bool	        m_bIsLongLoca;
     

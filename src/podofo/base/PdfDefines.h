@@ -458,10 +458,6 @@ static const char s_cDelimiters[] = {
     '\0' // end marker
 };
 
-#ifndef PODOFO_CONVERSION_CONSTANT
-#define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
-#endif // PODOFO_CONVERSION_CONSTANT
-
 }; // end namespace PoDoFo
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfWriteMode);

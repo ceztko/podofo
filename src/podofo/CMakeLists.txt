@@ -47,6 +47,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfSigner.cpp
   base/PdfStream.cpp
   base/PdfString.cpp
+  base/PdfTextState.cpp
   base/PdfTokenizer.cpp
   base/PdfVariant.cpp
   base/PdfVecObjects.cpp
@@ -167,6 +168,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfSigner.h
    base/PdfStream.h
    base/PdfString.h
+   base/PdfTextState.h
    base/PdfTokenizer.h
    base/PdfVariant.h
    base/PdfVecObjects.h

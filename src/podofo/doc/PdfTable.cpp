@@ -127,7 +127,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 	bool bBorders = !m_pModel || m_pModel->HasBorders();
 
     // Calculate all necessary sizes
-    this->CalculateTableSize( dX, dY, pPainter->GetPage(), 
+    this->CalculateTableSize( dX, dY, pPainter->GetCanvas(),
                               pdColWidths, pdRowHeights,
                               &dWidth, &dHeight );
  
@@ -139,7 +139,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     else
     {
         m_curClipRect = PdfRect( 0.0, dX, 
-                                 pPainter->GetPage()->GetRect().GetWidth() - dX,
+                                 pPainter->GetCanvas()->GetRect().GetWidth() - dX,
                                  dY );
     }
 
@@ -226,10 +226,10 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 							dVertical = 0.0;
 							break;
 						case EPdfVerticalAlignment::Center:
-							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing()) / 2.0;
+							dVertical = (pdRowHeights[j] - pFont->GetLineSpacing(pPainter->GetTextState())) / 2.0;
 							break;
 						case EPdfVerticalAlignment::Bottom:
-							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing());
+							dVertical = (pdRowHeights[j] - pFont->GetLineSpacing(pPainter->GetTextState()));
 							break;
 					}
 

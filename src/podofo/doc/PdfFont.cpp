@@ -52,8 +52,7 @@
 #include <sstream>
 
 using namespace std;
-
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
     : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), 
@@ -91,10 +90,6 @@ void PdfFont::InitVars()
 {
     ostringstream out;
     PdfLocaleImbue(out);
-
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
 
     // Peter Petrov 24 Spetember 2008
     m_bWasEmbedded = false;
@@ -181,26 +176,132 @@ void PdfFont::EmbedSubsetFont()
     PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
 }
 
-void PdfFont::AddUsedSubsettingGlyphs( const PdfString & , size_t )
+double PdfFont::StringWidth(const PdfString& rsString, const PdfTextState& state) const
 {
-	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
+    return 0.0;
 }
 
-void PdfFont::AddUsedGlyphname( const char * )
+double PdfFont::StringWidth(const std::string_view& view, const PdfTextState& state) const
 {
-	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
+    return 0.0;
 }
 
-void PdfFont::SetBold( bool bBold )
+double PdfFont::CharWidth(char32_t ch, const PdfTextState& state) const
+{
+    return 0.0;
+
+    /* FreeType
+    FT_Error ftErr;
+    double   dWidth = 0.0;
+
+    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE )
+    {
+        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
+    }
+    else
+    {
+        ftErr = FT_Load_Char( m_pFace, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
+        if( ftErr )
+            return dWidth;
+
+        dWidth = m_pFace->glyph->metrics.horiAdvance * 1000.0 / m_pFace->units_per_EM;
+    }
+
+    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale()) / 1000.0 +
+        static_cast<double>( this->GetFontSize() * this->GetFontScale() * this->GetFontCharSpace() / 100.0);
+    */
+
+    /*
+    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale()) / 1000.0 +
+        static_cast<double>(this->GetFontSize() * this->GetFontScale() * this->GetFontCharSpace() / 100.0);
+    */
+
+    /*
+    if( c >= m_nFirst && c <= m_nLast
+        && c - m_nFirst < m_width.GetSize())
+    {
+        double dWidth = m_width[c - m_nFirst].GetReal();
+
+        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
+
+    }
+
+    if( m_missingWidth != NULL )
+        return m_missingWidth->GetReal ();
+    else
+        return m_dDefWidth;
+}
+
+double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
+{
+    if( c >= m_nFirst && c <= m_nLast
+        && c - m_nFirst < m_width.GetSize())
+    {
+        double dWidth = m_width[c - m_nFirst].GetReal();
+
+        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
+    }
+
+    if( m_missingWidth != NULL )
+        return m_missingWidth->GetReal ();
+    else
+        return m_dDefWidth;
+    */
+}
+
+double PdfFont::GetLineSpacing(const PdfTextState& state) const
+{
+    return m_pMetrics->GetLineSpacing() * state.GetFontSize();
+}
+
+double PdfFont::GetUnderlineThickness(const PdfTextState& state) const
+{
+    return m_pMetrics->GetUnderlineThickness() * state.GetFontSize();
+}
+
+double PdfFont::GetUnderlinePosition(const PdfTextState& state) const
+{
+    return m_pMetrics->GetUnderlinePosition() * state.GetFontSize();
+}
+
+double PdfFont::GetStrikeOutPosition(const PdfTextState& state) const
+{
+    return m_pMetrics->GetStrikeOutPosition() * state.GetFontSize();
+}
+
+double PdfFont::GetStrikeOutThickness(const PdfTextState& state) const
+{
+    return m_pMetrics->GetStrikeOutThickness() * state.GetFontSize();
+}
+
+double PdfFont::GetAscent(const PdfTextState& state) const
+{
+    return m_pMetrics->GetAscent() * state.GetFontSize();
+}
+
+double PdfFont::GetDescent(const PdfTextState& state) const
+{
+    return m_pMetrics->GetDescent() * state.GetFontSize();
+}
+
+void PdfFont::AddUsedSubsettingGlyphs(const PdfString&, size_t)
+{
+    //virtual function is only implemented in derived class
+    PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Subsetting not implemented for this font type.");
+}
+
+void PdfFont::AddUsedGlyphname(const char*)
+{
+    //virtual function is only implemented in derived class
+    PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Subsetting not implemented for this font type.");
+}
+
+void PdfFont::SetBold(bool bBold)
 {
     m_bBold = bBold;
 }
 
-void PdfFont::SetItalic( bool bItalic )
+void PdfFont::SetItalic(bool bItalic)
 {
     m_bItalic = bItalic;
 }
-
-};

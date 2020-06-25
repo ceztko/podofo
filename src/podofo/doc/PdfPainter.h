@@ -33,16 +33,16 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_PAINTER_H_
-#define _PDF_PAINTER_H_
-
-#include "podofo/base/PdfDefines.h"
-
-#include "podofo/base/PdfRect.h"
-#include "podofo/base/PdfColor.h"
-#include <podofo/base/PdfCanvas.h>
+#ifndef PDF_PAINTER_H
+#define PDF_PAINTER_H
 
 #include <sstream>
+
+#include <podofo/base/PdfDefines.h>
+#include <podofo/base/PdfRect.h>
+#include <podofo/base/PdfColor.h>
+#include <podofo/base/PdfCanvas.h>
+#include <podofo/base/PdfTextState.h>
 
 namespace PoDoFo {
 
@@ -107,21 +107,8 @@ public:
      *
      *  \see PdfPage \see PdfXObject
      *  \see FinishPage()
-     *  \see GetPage()
      */
     void SetCanvas( PdfCanvas* pPage );
-
-    /** Return the current page that is that on the painter.
-     *
-     *  \returns the current page of the painter or nullptr if none is set
-     */
-    inline PdfCanvas* GetPage() const { return m_canvas; }
-
-    /** Return the current page canvas stream that is set on the painter.
-     *
-     *  \returns the current page canvas stream of the painter or nullptr if none is set
-     */
-    inline PdfStream* GetCanvas() const { return m_stream; }
 
     /** Finish drawing onto a canvas.
      * 
@@ -255,16 +242,6 @@ public:
      *    EPdfTextRenderingMode::ToClipPath
      */
     void SetTextRenderingMode( EPdfTextRenderingMode mode );
-
-    /** Gets current text rendering mode.
-     *  Default mode is EPdfTextRenderingMode::Fill.
-     */
-    inline EPdfTextRenderingMode GetTextRenderingMode() const { return currentTextRenderingMode; }
-
-    /** Get the current font:
-     *  \returns a font object or nullptr if no font was set.
-     */
-    inline PdfFont* GetFont() const { return m_pFont; }
 
     /** Set a clipping rectangle
      *
@@ -687,25 +664,6 @@ public:
      */
     void SetRenderingIntent( char* intent );
 
-    /** Set the tab width for the DrawText operation.
-     *  Every tab '\\t' is replaced with nTabWidth 
-     *  spaces before drawing text. Default is a value of 4
-     *
-     *  \param nTabWidth replace every tabulator by this much spaces
-     *
-     *  \see DrawText
-     *  \see TabWidth
-     */
-    inline void SetTabWidth( unsigned short nTabWidth ) { m_nTabWidth = nTabWidth; }
-
-    /** Get the currently set tab width
-     *  \returns by how many spaces a tabulator will be replaced
-     *  
-     *  \see DrawText
-     *  \see TabWidth
-     */
-    inline unsigned short GetTabWidth() const { return m_nTabWidth; }
-
     /** Set the floating point precision.
      *
      *  \param inPrec write this many decimal places
@@ -717,16 +675,6 @@ public:
      */
     unsigned short GetPrecision() const;
 
-    /** Get current path string stream.
-     * Stroke/Fill commands clear current path.
-     * \returns std::ostringstream representing current path
-     */
-    inline std::ostringstream &GetCurrentPath(void) { return m_curPath; }
-
-    /** Get current temporary stream
-     */
-    inline std::ostringstream & GetStream() { return m_tmpStream; }
-
     /** Set rgb color that depend on color space setting, "cs" tag.
      *
      * \param rColor a PdfColor object
@@ -736,7 +684,62 @@ public:
      */
     void SetDependICCProfileColor( const PdfColor & rColor, const std::string & pCSTag );
 
- protected:
+public:
+    inline const PdfTextState & GetTextState() const { return m_textState; }
+    inline PdfTextState & GetTextState() { return m_textState; }
+
+    /** Gets current text rendering mode.
+     *  Default mode is EPdfTextRenderingMode::Fill.
+     */
+    inline EPdfTextRenderingMode GetTextRenderingMode() const { return currentTextRenderingMode; }
+
+    /** Get the current font:
+     *  \returns a font object or NULL if no font was set.
+     */
+    inline PdfFont* GetFont() const { return m_pFont; }
+
+    /** Set the tab width for the DrawText operation.
+     *  Every tab '\\t' is replaced with nTabWidth
+     *  spaces before drawing text. Default is a value of 4
+     *
+     *  \param nTabWidth replace every tabulator by this much spaces
+     *
+     *  \see DrawText
+     *  \see TabWidth
+     */
+    inline void SetTabWidth(unsigned short nTabWidth) { m_nTabWidth = nTabWidth; }
+
+    /** Get the currently set tab width
+     *  \returns by how many spaces a tabulator will be replaced
+     *
+     *  \see DrawText
+     *  \see TabWidth
+     */
+    inline unsigned short GetTabWidth() const { return m_nTabWidth; }
+
+    /** Return the current page that is that on the painter.
+     *
+     *  \returns the current page of the painter or NULL if none is set
+     */
+    inline PdfCanvas* GetCanvas() const { return m_canvas; }
+
+    /** Return the current canvas stream that is set on the painter.
+     *
+     *  \returns the current page canvas stream of the painter or NULL if none is set
+     */
+    inline PdfStream* GetStream() const { return m_stream; }
+
+    /** Get current path string stream.
+     * Stroke/Fill commands clear current path.
+     * \returns std::ostringstream representing current path
+     */
+    inline std::ostringstream& GetCurrentPath(void) { return m_curPath; }
+
+    /** Get current temporary stream
+     */
+    inline std::ostringstream & GetStream() { return m_tmpStream; }
+
+private:
  
     /** Coverts a rectangle to an array of points which can be used 
      *  to draw an ellipse using 4 bezier curves.
@@ -754,8 +757,6 @@ public:
      *                  of the resulting points will be stored
      */
     void ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] );
-
- protected:
 
     /** Register an object in the resource dictionary of this page
      *  so that it can be used for any following drawing operations.
@@ -790,12 +791,10 @@ public:
      *  \see SetTabWidth
      */
     PdfString ExpandTabs( const PdfString & rsString, ssize_t lLen = -1) const;
-
- private:
     void CheckStream();
     void finishDrawing();
 
- protected:
+ private:
      EPdfPainterFlags m_flags;
 
     /** All drawing operations work on this stream.
@@ -808,6 +807,8 @@ public:
      *  to the page resource dictionary as appropriate.
      */
     PdfCanvas* m_canvas;
+
+    PdfTextState m_textState;
 
     /** Font for all drawing operations
      */
@@ -853,4 +854,4 @@ public:
 
 ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
 
-#endif // _PDF_PAINTER_H_
+#endif // PDF_PAINTER_H

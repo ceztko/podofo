@@ -57,18 +57,12 @@ using namespace PoDoFo;
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
 #endif
+
 PdfFontMetrics::PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix )
-
     : m_sFilename( pszFilename ),
-      m_fFontSize( 0.0f ),
-      m_fFontScale( 100.0f ),
-      m_fFontCharSpace( 0.0f ),
-      m_fWordSpace( 0.0f ),
       m_eFontType( eFontType ),
-      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" )
-{
+      m_sFontSubsetPrefix( pszSubsetPrefix ? pszSubsetPrefix : "" ) { }
 
-}
 /*
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(nullptr),
@@ -926,21 +920,22 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #endif // apple
 
+/*
+
 double PdfFontMetrics::StringWidth(const std::string_view& view) const
 {
     double dWidth = 0.0;
 
-    /*
     // REMOVE-ME: This was present before and is garbage
-    const char *localText = pszText;
-    for (size_t i = 0; i < nLength; i++)
-    {
-        dWidth += CharWidth( *localText );
-        if (*localText == 0x20)
-            dWidth += m_fWordSpace * (double)GetFontScale() / 100.0;
-        localText++;
-    }
-    */
+    //const char *localText = pszText;
+    //for (size_t i = 0; i < nLength; i++)
+    //{
+    //    dWidth += CharWidth( *localText );
+    //    if (*localText == 0x20)
+    //        dWidth += m_fWordSpace * (double)GetFontScale();
+    //    localText++;
+    //}
+
     // TODO: CLEAN-ME, this sucks but it's towards the right solution!
     // Probably PdfFontMetrics should just handle unicode values here and ligatures, *NOT* CIDs
     const char* pCurr = view.data();
@@ -949,15 +944,15 @@ double PdfFontMetrics::StringWidth(const std::string_view& view) const
     {
         double width = 0;
 
-        /*
-         * CMap Mapping, PDF Reference 1.7, pg. 453
-         * A sequence of one or more bytes is extracted from the string and matched against
-         * the codespace ranges in the CMap. That is, the first byte is matched against 1-byte
-         * codespace ranges; if no match is found, a second byte is extracted, and the 2-byte
-         * srcCode is matched against 2-byte codespace ranges. This process continues for successively
-         * longer codes until a match is found or all codespace ranges have been
-         * tested. There will be at most one match because codespace ranges do not overlap.
-         */
+        //
+        // CMap Mapping, PDF Reference 1.7, pg. 453
+        // A sequence of one or more bytes is extracted from the string and matched against
+        // the codespace ranges in the CMap. That is, the first byte is matched against 1-byte
+        // codespace ranges; if no match is found, a second byte is extracted, and the 2-byte
+        // srcCode is matched against 2-byte codespace ranges. This process continues for successively
+        // longer codes until a match is found or all codespace ranges have been
+        // tested. There will be at most one match because codespace ranges do not overlap.
+        //
         uint32_t code = 0;
         unsigned i = 1;
         for (; i <= 2 && pCurr != pEnd; i++)
@@ -989,11 +984,12 @@ double PdfFontMetrics::StringWidth(const std::string_view& view) const
 
         dWidth += width;
         if (code == 0x20)
-            dWidth += m_fWordSpace * (double)GetFontScale() / 100.0;
+            dWidth += m_fWordSpace * (double)GetFontScale();
     }
 
     return dWidth;
 }
+*/
 
 EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
 {
@@ -1003,46 +999,6 @@ EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
         PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", pszFilename );
 
     return eFontType;
-}
-
-unsigned long PdfFontMetrics::CharWidthMM(unsigned char c) const
-{
-    return static_cast<unsigned long>(this->CharWidth(c) / PODOFO_CONVERSION_CONSTANT);
-}
-
-double PdfFontMetrics::StringWidth(const PdfString& rsString) const
-{
-    return this->StringWidth((std::string_view)rsString.GetRawData());
-}
-
-unsigned long PdfFontMetrics::StringWidthMM(const std::string_view& view) const
-{
-    return static_cast<unsigned long>(this->StringWidth(view) / PODOFO_CONVERSION_CONSTANT);
-}
-
-unsigned long PdfFontMetrics::GetLineSpacingMM() const
-{
-    return static_cast<unsigned long>(this->GetLineSpacing() / PODOFO_CONVERSION_CONSTANT);
-}
-
-long PdfFontMetrics::GetUnderlinePositionMM() const
-{
-    return static_cast<long>(this->GetUnderlinePosition() / PODOFO_CONVERSION_CONSTANT);
-}
-
-unsigned long PdfFontMetrics::GetStrikeOutPositionMM() const
-{
-    return static_cast<long>(this->GetStrikeOutPosition() / PODOFO_CONVERSION_CONSTANT);
-}
-
-unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
-{
-    return static_cast<unsigned long>(this->GetUnderlineThickness() / PODOFO_CONVERSION_CONSTANT);
-}
-
-unsigned long PdfFontMetrics::GetStrikeoutThicknessMM() const
-{
-    return static_cast<unsigned long>(this->GetStrikeoutThickness() / PODOFO_CONVERSION_CONSTANT);
 }
 
 const char* PdfFontMetrics::GetFilename() const

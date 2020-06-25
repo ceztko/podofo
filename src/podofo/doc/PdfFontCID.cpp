@@ -74,14 +74,14 @@ static bool fillGidToCodePoint(GidToCodePoint& array, PdfFontMetrics* metrics);
 typedef std::map<char32_t, int> UnicodeToIndex;
 static UnicodeToIndex getUnicodeToIndexTable(const PdfEncoding* pEnconding);
 
-static GlyphWidths getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
-static GlyphWidths getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed);
+static GlyphWidths getGlyphWidths(const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
+static GlyphWidths getGlyphWidths(const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed);
 
-static void createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
-static void createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<char32_t>& setUsed);
+static void createWidths(PdfObject* pFontDict, const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
+static void createWidths(PdfObject* pFontDict, const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed);
 
-static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
-static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed);
+static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, const PdfFontMetrics & pMetrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex);
+static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, const PdfFontMetrics & pMetrics, const std::set<char32_t>& setUsed);
 
 static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidToCodePoint, int nFirstChar, int nLastChar, bool bSingleByteEncoding);
 
@@ -216,9 +216,9 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
-    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
+    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetAscent() );
+    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetDescent() );
+    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetAscent() ); // m_pMetrics->CapHeight() );
     pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008
@@ -267,29 +267,31 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 {
 	bool fallback = true;
     
-    if (IsSubsetting()) {
-        if (m_setUsed.empty()) {
+    if (IsSubsetting())
+    {
+        if (m_setUsed.empty())
+        {
             /* Space at least should exist (as big endian) */
             m_setUsed.insert(0x20);
         }
-        PdfFontMetrics *pMetrics = GetFontMetrics2();
+        const PdfFontMetrics *pMetrics = GetFontMetrics();
 
-        if (pMetrics && pMetrics->GetFontDataLen() && pMetrics->GetFontData()) {
-
-            if (m_pEncoding->IsSingleByteEncoding()) {
+        if (pMetrics && pMetrics->GetFontDataLen() && pMetrics->GetFontData())
+        {
+            if (m_pEncoding->IsSingleByteEncoding())
+            {
                 UnicodeToIndex unicodeToIndex = getUnicodeToIndexTable(m_pEncoding);
-                createWidths(this->GetObject(), pMetrics, m_setUsed, unicodeToIndex);
-        
+                createWidths(this->GetObject(), *pMetrics, m_setUsed, unicodeToIndex);
                 PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateObject();
-                GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed, unicodeToIndex);
+                GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, *pMetrics, m_setUsed, unicodeToIndex);
                 fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), true);
                 this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
             }
-            else {
-                createWidths(m_pDescendantFonts, pMetrics, m_setUsed);
-
+            else
+            {
+                createWidths(m_pDescendantFonts, *pMetrics, m_setUsed);
                 PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateObject();
-                GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed);
+                GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, *pMetrics, m_setUsed);
                 fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), false);
                 this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
             }
@@ -305,14 +307,15 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 
             if (!m_pEncoding->IsSingleByteEncoding())
             {
-                if (!array.empty()) {
+                if (!array.empty())
+                {
                     PdfObject* cidSet = pDescriptor->GetDocument()->GetObjects().CreateObject();
                     TVecFilters vecFlate;
                     vecFlate.push_back(EPdfFilter::FlateDecode);
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
 					cidSet->GetOrCreateStream().Set(&stream, vecFlate);
                     pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->GetIndirectReference());
-			}
+			    }
             }
 
             PdfObject *pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
@@ -619,13 +622,13 @@ static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidTo
     pStream.EndAppend();
 }
 
-static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
+static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, const PdfFontMetrics & pMetrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
     (void)pEncoding;
     GidToCodePoint gidToCodePoint;
     char32_t codePoint;
     long lGlyph;
-    long lRepl = pMetrics->GetGlyphId( 0xFFFD );
+    long lRepl = pMetrics.GetGlyphId( 0xFFFD );
 
     UnicodeToIndex::const_iterator indexLookup;
     for (std::set<char32_t>::const_iterator it = setUsed.begin(); it != setUsed.end(); ++it)
@@ -633,7 +636,7 @@ static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMet
         codePoint = *it;
         indexLookup = unicodeToIndex.find( codePoint );
         if (indexLookup != unicodeToIndex.end()) {
-            lGlyph = pMetrics->GetGlyphId( codePoint );
+            lGlyph = pMetrics.GetGlyphId( codePoint );
             if( lGlyph )
         {
                 gidToCodePoint[indexLookup->second] = codePoint;
@@ -648,7 +651,7 @@ static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMet
 }
 
 static GidToCodePoint
-getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed)
+getGidToCodePoint(const PdfEncoding* pEncoding, const PdfFontMetrics & pMetrics, const std::set<char32_t>& setUsed)
 {
     (void)pEncoding;
     GidToCodePoint gidToCodePoint;
@@ -657,7 +660,7 @@ getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const 
     for (std::set<char32_t>::const_iterator it = setUsed.begin(); it != setUsed.end(); ++it)
     {
         codePoint = *it;
-        lGlyph = pMetrics->GetGlyphId( codePoint );
+        lGlyph = pMetrics.GetGlyphId( codePoint );
         if( lGlyph )
         {
             gidToCodePoint[lGlyph] = codePoint;
@@ -820,8 +823,7 @@ fillGidToCodePoint(GidToCodePoint& array, PdfFontMetrics* metrics)
     return true;
 }
 
-static GlyphWidths
-getGlyphWidths(PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed)
+static GlyphWidths getGlyphWidths(const PdfFontMetrics & pMetrics, const std::set<char32_t>& setUsed)
 {
     GlyphWidths glyphWidths;
 
@@ -836,7 +838,7 @@ getGlyphWidths(PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed)
     for (std::set<char32_t>::const_iterator it = setUsed.begin(); it != setUsed.end(); ++it)
     {
         /* If font does not contain a character code, then .notdef */
-        lGlyph = pMetrics->GetGlyphId( *it );
+        lGlyph = pMetrics.GetGlyphId( *it );
         if( lGlyph )
         {
             nMin = std::min( nMin, lGlyph );
@@ -845,7 +847,7 @@ getGlyphWidths(PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed)
 
             if( lGlyph < cAbsoluteMax )
             {
-                dCurWidth = pMetrics->GetGlyphWidth( lGlyph );
+                dCurWidth = pMetrics.GetGlyphWidth( lGlyph );
                 glyphWidths[lGlyph] = dCurWidth;
             }
         }
@@ -853,8 +855,7 @@ getGlyphWidths(PdfFontMetrics* pMetrics, const std::set<char32_t>& setUsed)
     return glyphWidths;
 }
 
-static GlyphWidths
-getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
+static GlyphWidths getGlyphWidths(const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
     GlyphWidths glyphWidths;
 
@@ -873,7 +874,7 @@ getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const
         codePoint = *it;
         indexLookup = unicodeToIndex.find( codePoint );
         if ( (indexLookup != unicodeToIndex.end()) && indexLookup->second ) {
-            lGlyph = metrics->GetGlyphId( codePoint );
+            lGlyph = metrics.GetGlyphId( codePoint );
             /* XXX: If character code is not found in font, then do nothing */
             if( lGlyph )
             {
@@ -883,7 +884,7 @@ getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const
 
                 if( lGlyph < cAbsoluteMax )
                 {
-                    dCurWidth = metrics->GetGlyphWidth( lGlyph );
+                    dCurWidth = metrics.GetGlyphWidth( lGlyph );
                     glyphWidths[indexLookup->second] = dCurWidth;
                 }
             }
@@ -892,8 +893,7 @@ getGlyphWidths(PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const
     return glyphWidths;
 }
 
-static void
-createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
+static void createWidths(PdfObject* pFontDict, const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
     PdfArray array;
     GlyphWidths glyphWidths = getGlyphWidths(metrics, setUsed, unicodeToIndex);
@@ -924,8 +924,7 @@ createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<char3
     }
 }
 
-static void
-createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<char32_t>& setUsed)
+static void createWidths(PdfObject* pFontDict, const PdfFontMetrics & metrics, const std::set<char32_t>& setUsed)
 {
     PdfArray array;
     GlyphWidths glyphWidths = getGlyphWidths(metrics, setUsed);

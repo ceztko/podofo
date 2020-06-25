@@ -52,7 +52,7 @@
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
@@ -211,7 +211,6 @@ void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
     m_dUnderlinePosition  = 0.0;
     m_dStrikeOutPosition  = 0.0;
     m_dStrikeOutThickness = 0.0;
-    m_fFontSize           = 0.0f;
      m_bSymbol = pIsSymbol;
     m_bIsBold = false;
     m_bIsItalic = false;
@@ -377,36 +376,6 @@ void PdfFontMetricsFreetype::GetBoundingBox( PdfArray & array ) const
     array.push_back( PdfVariant( m_pFace->bbox.yMax  * 1000.0 / m_pFace->units_per_EM ) );
 }
 
-double PdfFontMetricsFreetype::CharWidth( unsigned char c ) const
-{
-    double dWidth = m_vecWidth[static_cast<unsigned int>(c)];
-
-    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
-        static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
-}
-
-double PdfFontMetricsFreetype::UnicodeCharWidth( unsigned short c ) const
-{
-    FT_Error ftErr;
-    double   dWidth = 0.0;
-
-    if( static_cast<int>(c) < PODOFO_WIDTH_CACHE_SIZE ) 
-    {
-        dWidth = m_vecWidth[static_cast<unsigned int>(c)];
-    }
-    else
-    {
-        ftErr = FT_Load_Char( m_pFace, static_cast<FT_UInt>(c), FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP );
-        if( ftErr )
-            return dWidth;
-
-        dWidth = m_pFace->glyph->metrics.horiAdvance * 1000.0 / m_pFace->units_per_EM;
-    }
-
-    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
-        static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
-}
-
 long PdfFontMetricsFreetype::GetGlyphId( long lUnicode ) const
 {
     long lGlyph = 0L;
@@ -431,116 +400,62 @@ bool PdfFontMetricsFreetype::IsItalic(void) const
     return m_bIsItalic;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsFreetype::GetLineSpacing() const
 {
-    return m_dLineSpacing * this->GetFontSize();
+    return m_dLineSpacing;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsFreetype::GetUnderlinePosition() const
 {
-    return m_dUnderlinePosition * this->GetFontSize();
+    return m_dUnderlinePosition;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsFreetype::GetStrikeOutPosition() const
 {
-    return m_dStrikeOutPosition * this->GetFontSize();
+    return m_dStrikeOutPosition;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsFreetype::GetUnderlineThickness() const
 {
-    return m_dUnderlineThickness * this->GetFontSize();
+    return m_dUnderlineThickness;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsFreetype::GetStrikeoutThickness() const
+double PdfFontMetricsFreetype::GetStrikeOutThickness() const
 {
-    return m_dStrikeOutThickness * this->GetFontSize();
+    return m_dStrikeOutThickness;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
+double PdfFontMetricsFreetype::GetAscent() const
+{
+    return m_dAscent;
+}
+
+double PdfFontMetricsFreetype::GetDescent() const
+{
+    return m_dDescent;
+}
+
 const char* PdfFontMetricsFreetype::GetFontData() const
 {
     return m_bufFontData.GetBuffer();
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 size_t PdfFontMetricsFreetype::GetFontDataLen() const
 {
     return m_bufFontData.GetSize();
 }  
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 unsigned int PdfFontMetricsFreetype::GetWeight() const
 {
     return m_nWeight;
-}  
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsFreetype::GetAscent() const
-{
-    return m_dAscent * this->GetFontSize();
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsFreetype::GetPdfAscent() const
-{
-    return m_dPdfAscent;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsFreetype::GetDescent() const
-{
-    return m_dDescent * this->GetFontSize();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsFreetype::GetPdfDescent() const
-{
-    return m_dPdfDescent;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 int PdfFontMetricsFreetype::GetItalicAngle() const
 {
     return m_nItalicAngle;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 bool PdfFontMetricsFreetype::IsSymbol() const
 {
     return m_bSymbol;
 }
-
-};

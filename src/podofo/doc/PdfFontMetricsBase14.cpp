@@ -96,83 +96,52 @@ double PdfFontMetricsBase14::GetGlyphWidth( const char* ) const
     return 0.0;
 }
 
-double PdfFontMetricsBase14::CharWidth( unsigned char c ) const 
+double PdfFontMetricsBase14::GetLineSpacing() const
 {
-    double dWidth = widths_table[static_cast<unsigned int>(GetGlyphId(c) )].width;
-    
-    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
-        static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
+    return m_dLineSpacing;
 }
 
-double PdfFontMetricsBase14::UnicodeCharWidth( unsigned short c ) const 
+double PdfFontMetricsBase14::GetUnderlineThickness() const
 {
-    double   dWidth = 0.0;
-    
-    dWidth = widths_table[static_cast<unsigned int>(GetGlyphIdUnicode(c) )].width;
-	
-    return dWidth * static_cast<double>(this->GetFontSize() * this->GetFontScale() / 100.0) / 1000.0 +
-        static_cast<double>( this->GetFontSize() * this->GetFontScale() / 100.0 * this->GetFontCharSpace() / 100.0);
+    return m_dUnderlineThickness;
 }
 
-inline double PdfFontMetricsBase14::GetLineSpacing() const 
+double PdfFontMetricsBase14::GetUnderlinePosition() const
 {
-    return m_dLineSpacing * this->GetFontSize();
+    return m_dUnderlinePosition;
 }
 
-inline double PdfFontMetricsBase14::GetUnderlineThickness() const 
+double PdfFontMetricsBase14::GetStrikeOutPosition() const
 {
-    return m_dUnderlineThickness * this->GetFontSize();
+    return m_dStrikeOutPosition;
 }
 
-inline double PdfFontMetricsBase14::GetUnderlinePosition() const 
+double PdfFontMetricsBase14::GetStrikeOutThickness() const
 {
-    return m_dUnderlinePosition * this->GetFontSize();
+    return m_dStrikeOutThickness;
 }
 
-inline double PdfFontMetricsBase14::GetStrikeOutPosition() const 
+double PdfFontMetricsBase14::GetAscent() const
 {
-    return m_dStrikeOutPosition * this->GetFontSize();
+    return m_dAscent;
 }
 
-inline double PdfFontMetricsBase14::GetStrikeoutThickness() const 
+double PdfFontMetricsBase14::GetDescent() const
 {
-    return m_dStrikeOutThickness * this->GetFontSize();
+    return m_dDescent;
 }
 
-const char* PdfFontMetricsBase14::GetFontname() const 
+const char* PdfFontMetricsBase14::GetFontname() const
 {
-#ifdef MYASSERT
-    PODOFO_ASSERT(font_name != nullptr);
-#endif
     return font_name;
 }
 
-unsigned int PdfFontMetricsBase14::GetWeight() const 
+unsigned int PdfFontMetricsBase14::GetWeight() const
 {
     return m_nWeight;
 }
 
-double PdfFontMetricsBase14::GetAscent() const 
-{
-    return m_dAscent * this->GetFontSize();
-}
-
-double PdfFontMetricsBase14::GetPdfAscent() const 
-{
-    return m_dPdfAscent;
-}
-
-double PdfFontMetricsBase14::GetDescent() const 
-{
-    return m_dDescent * this->GetFontSize();
-}
-
-double PdfFontMetricsBase14::GetPdfDescent() const 
-{
-    return m_dPdfDescent;
-}
-
-int PdfFontMetricsBase14::GetItalicAngle() const 
+int PdfFontMetricsBase14::GetItalicAngle() const
 {
     return m_nItalicAngle;
 }
@@ -231,9 +200,8 @@ long PdfFontMetricsBase14::GetGlyphId( long charId ) const
     return lGlyph;
 }
 
-inline bool PdfFontMetricsBase14::IsSymbol() const
+bool PdfFontMetricsBase14::IsSymbol() const
 {
-    
     return m_bSymbol;
 }
 

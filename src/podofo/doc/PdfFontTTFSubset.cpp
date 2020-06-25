@@ -88,7 +88,7 @@ static unsigned TableCheksum(const char* bufp, unsigned size)
     return chksum;
 }
 
-PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics* pMetrics, unsigned short nFaceIndex )
+PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, const PdfFontMetrics* pMetrics, unsigned short nFaceIndex )
     : m_pMetrics( pMetrics ), 
       m_bIsLongLoca( false ), m_numTables( 0 ), m_numGlyphs( 0 ), m_numHMetrics( 0 ), m_faceIndex( nFaceIndex ), m_ulStartOfTTFOffsets( 0 ),
       m_bOwnDevice( true )
@@ -109,7 +109,7 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
     m_pDevice = new PdfInputDevice( (string_view)pszFontFileName );
 }
 
-PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex )
+PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, const PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex )
     : m_pMetrics( pMetrics ), m_eFontFileType( eType ),
       m_bIsLongLoca( false ), m_numTables( 0 ), m_numGlyphs( 0 ), m_numHMetrics( 0 ), m_faceIndex( nFaceIndex ), m_ulStartOfTTFOffsets( 0 ),
       m_pDevice( pDevice ), m_bOwnDevice( false )
