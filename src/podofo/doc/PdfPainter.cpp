@@ -74,15 +74,10 @@ using namespace PoDoFo;
 static const long clPainterHighPrecision    = 15L;
 static const long clPainterDefaultPrecision = 3L;
 
-static inline unsigned short SwapBytes(unsigned short val)
-{
-	return ((val & 0x00FF) << 8) | ((val & 0xFF00) >> 8);
-}
-
 static inline unsigned short SwapCharBytesIfRequired(pdf_utf16be ch)
 {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-	return SwapBytes(ch);
+	return compat::ByteSwap(ch);
 #else
 	return ch;
 #endif

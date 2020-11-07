@@ -72,57 +72,81 @@
 #  define PDF_SIZE_FORMAT "zu"
 #endif
 
-namespace PoDoFo::compat {
+#define AS_BIG_ENDIAN(n) PoDoFo::compat::HandleBigEndian(n)
+#define FROM_BIG_ENDIAN(n) PoDoFo::compat::HandleBigEndian(n)
 
+namespace PoDoFo::compat
+{
 #ifdef _MSC_VER
-#  define byteswap16(n) _byteswap_ushort(n)
-#  define byteswap32(n) _byteswap_ulong(n)
-#  define byteswap64(n) _byteswap_uint64(n)
+    inline uint16_t ByteSwap(uint16_t n)
+    {
+        return _byteswap_ushort(n);
+    }
+
+    inline uint32_t ByteSwap(uint32_t n)
+    {
+        return _byteswap_ulong(n);
+    }
+
+    inline uint64_t ByteSwap(uint64_t n)
+    {
+        return _byteswap_uint64(n);
+    }
 #else
-#  define byteswap16(n) __builtin_bswap16(n)
-#  define byteswap32(n) __builtin_bswap32(n)
-#  define byteswap64(n) __builtin_bswap64(n)
+    inline uint16_t ByteSwap(uint16_t n)
+    {
+        return __builtin_bswap16(n);
+}
+
+    inline uint32_t ByteSwap(uint32_t n)
+    {
+        return __builtin_bswap32(n);
+    }
+
+    inline uint64_t ByteSwap(uint64_t n)
+    {
+        return __builtin_bswap64(n);
+    }
 #endif
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    inline uint16_t AsBigEndian(uint16_t n)
+    inline uint16_t HandleBigEndian(uint16_t n)
     {
-        return byteswap16(n);
+        return ByteSwap(n);
     }
 
-    inline uint32_t AsBigEndian(uint32_t n)
+    inline uint32_t HandleBigEndian(uint32_t n)
     {
-        return byteswap32(n);
+        return ByteSwap(n);
     }
 
-    inline uint64_t AsBigEndian(uint64_t n)
+    inline uint64_t HandleBigEndian(uint64_t n)
     {
-        return byteswap64(n);
+        return ByteSwap(n);
     }
 #else
-    inline uint16_t AsBigEndian(uint16_t n)
+    inline uint16_t HandleBigEndian(uint16_t n)
     {
         return n;
     }
 
-    inline uint32_t AsBigEndian(uint32_t n)
+    inline uint32_t HandleBigEndian(uint32_t n)
     {
         return n;
     }
 
-    inline uint64_t AsBigEndian(uint64_t n)
+    inline uint64_t HandleBigEndian(uint64_t n)
     {
         return n;
     }
 #endif
 
-// Locale invariant vsnprintf
-int vsnprintf(char* buffer, size_t count, const char* format, va_list argptr);
+    // Locale invariant vsnprintf
+    int vsnprintf(char* buffer, size_t count, const char* format, va_list argptr);
 
-// Case-insensitive string compare functions aren't very portable
-int strcasecmp(const char* s1, const char* s2);
-int strncasecmp(const char* s1, const char* s2, size_t n);
-
+    // Case-insensitive string compare functions aren't very portable
+    int strcasecmp(const char* s1, const char* s2);
+    int strncasecmp(const char* s1, const char* s2, size_t n);
 }
 
 #endif // _PDF_COMPILERCOMPAT_PRIVATE_H

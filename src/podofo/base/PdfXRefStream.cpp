@@ -99,16 +99,16 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
     switch (entry.Type)
     {
     case EXRefEntryType::Free:
-        stmEntry.Variant = compat::AsBigEndian(static_cast<uint32_t>(entry.ObjectNumber));
+        stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
         break;
     case EXRefEntryType::InUse:
-        stmEntry.Variant = compat::AsBigEndian(static_cast<uint32_t>(entry.Offset));
+        stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
         break;
     default:
         PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
     }
 
-    stmEntry.Generation = compat::AsBigEndian(static_cast<uint16_t>(entry.Generation));
+    stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));
     m_xrefStreamObj->GetOrCreateStream().Append((char *)&stmEntry, sizeof(XRefStreamEntry));
 }
 

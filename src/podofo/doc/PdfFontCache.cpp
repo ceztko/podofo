@@ -76,32 +76,6 @@
 
 using namespace std;
 
-//us: I know the endian functions are redundant, but they are not availabe in a .h file, right?
-//    Ohh, C++ should have these as intrinsic operators, since processors just need one SWAP directive.
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-inline unsigned long FromBigEndian(unsigned long i)
-{
-    return ((i << 24) & 0xFF000000) |
-           ((i <<  8) & 0x00FF0000) |
-           ((i >>  8) & 0x0000FF00) |
-           ((i >> 24) & 0x000000FF);
-}
-inline unsigned short ShortFromBigEndian(unsigned short i)
-{
-    return ((i << 8) & 0xFF00) | ((i >> 8) & 0x00FF);
-}
-#else
-inline unsigned long FromBigEndian(unsigned long i)
-{
-    return i;
-}
-inline unsigned short ShortFromBigEndian(unsigned short i)
-{
-    return i;
-}
-#endif
-
-
 namespace PoDoFo {
 
 #if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
@@ -144,15 +118,15 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
         return false;
     }
 
-    USHORT numTables = ShortFromBigEndian(*(USHORT *)(ttcBuffer + 4));
-    unsigned int outLen = 12+16* numTables;
+    uint16_t numTables = FROM_BIG_ENDIAN(*(uint16_t*)(ttcBuffer + 4));
+    unsigned outLen = 12 + 16 * numTables;
     char *entry = ttcBuffer + 12;
     int table;
 
     //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
     for (table = 0; table < numTables; table++)
     {
-        ULONG length = FromBigEndian(*(ULONG *)(entry + 12));
+        uint32_t length = FROM_BIG_ENDIAN(*(uint32_t*)(entry + 12));
         length = (length + 3) & ~3;
         entry += 16;
         outLen += length;
@@ -166,7 +140,7 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     }
     // copy font header and table index (offsets need to be still adjusted)
     memcpy(outBuffer, ttcBuffer, 12 + 16 * numTables);
-    unsigned int dstDataOffset = 12 + 16 * numTables;
+    uint32_t dstDataOffset = 12 + 16 * numTables;
 
     // process tables
     char *srcEntry = ttcBuffer + 12;
@@ -174,13 +148,13 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     for (table = 0; table < numTables; table++)
     {
         // read source entry
-        ULONG offset = FromBigEndian(*(ULONG *)(srcEntry + 8));
-        ULONG length = FromBigEndian(*(ULONG *)(srcEntry + 12));
+        uint32_t offset = FROM_BIG_ENDIAN(*(uint32_t*)(srcEntry + 8));
+        uint32_t length = FROM_BIG_ENDIAN(*(uint32_t*)(srcEntry + 12));
         length = (length + 3) & ~3;
 
         // adjust offset
         // U can use FromBigEndian() also to convert _to_ big endian
-        *(ULONG *)(dstEntry + 8) = FromBigEndian(dstDataOffset);
+        *(uint32_t*)(dstEntry + 8) = FROM_BIG_ENDIAN(dstDataOffset);
 
         //copy data
         memcpy(outBuffer + dstDataOffset, fileBuffer + offset, length);
