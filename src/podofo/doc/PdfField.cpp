@@ -205,7 +205,7 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
         int64_t flags;
         PdfField::GetFieldFlags(rObject, flags);
 
-        if ( ( flags & PdfListField::ePdfListField_Combo ) == PdfListField::ePdfListField_Combo )
+        if ( ( flags & PdChoiceField::ePdfListField_Combo ) == PdChoiceField::ePdfListField_Combo )
         {
             eField = EPdfField::ComboBox;
         }
@@ -253,7 +253,7 @@ void PdfField::Init(PdfAcroForm *pParent)
             break;
         case EPdfField::ComboBox:
             dict.AddKey(PdfName("FT"), PdfName("Ch"));
-            dict.AddKey("Ff", PdfObject((int64_t)PdfListField::ePdfListField_Combo));
+            dict.AddKey("Ff", PdfObject((int64_t)PdChoiceField::ePdfListField_Combo));
             break;
         case EPdfField::Signature:
             dict.AddKey( PdfName("FT"), PdfName("Sig") );

@@ -13,7 +13,7 @@ namespace PoDoFo
      *  \see PdfComboBox
      *  \see PdfListBox
      */
-    class PODOFO_DOC_API PdfListField : public PdfField
+    class PODOFO_DOC_API PdChoiceField : public PdfField
     {
         friend class PdfField;
     protected:
@@ -27,25 +27,25 @@ namespace PoDoFo
             ePdfListField_CommitOnSelChange = 0x4000000
         };
 
-        /** Create a new PdfListField
+        /** Create a new PdChoiceField
          */
-        PdfListField(EPdfField eField, PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
+        PdChoiceField(EPdfField eField, PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform);
 
-        /** Create a new PdfListField
+        /** Create a new PdChoiceField
          */
-        PdfListField(EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget);
+        PdChoiceField(EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget);
 
         /** Create a new PdfTextField
          */
-        PdfListField(EPdfField eField, PdfPage* pPage, const PdfRect& rRect);
+        PdChoiceField(EPdfField eField, PdfPage* pPage, const PdfRect& rRect);
 
     public:
-        /** Create a PdfListField from a PdfField
+        /** Create a PdChoiceField from a PdfField
          *  \param rhs a PdfField that is a list field
          *
          *  Internal usage only.
          */
-        PdfListField(const PdfField& rhs);
+        PdChoiceField(const PdfField& rhs);
 
         /**
          * Inserts a new item into the list
@@ -96,7 +96,7 @@ namespace PoDoFo
         int GetSelectedIndex() const;
 
         /**
-         * \returns true if this PdfListField is a PdfComboBox and false
+         * \returns true if this PdChoiceField is a PdfComboBox and false
          *               if it is a PdfListBox
          */
         bool IsComboBox() const;

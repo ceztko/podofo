@@ -3,25 +3,25 @@
 using namespace PoDoFo;
 
 PdfListBox::PdfListBox(PdfObject* pObject, PdfAnnotation* pWidget)
-    : PdfListField(EPdfField::ListBox, pObject, pWidget)
+    : PdChoiceField(EPdfField::ListBox, pObject, pWidget)
 {
     // NOTE: We assume initialization was performed in the given object
 }
 
 PdfListBox::PdfListBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
-    : PdfListField(EPdfField::ListBox, pWidget, pDoc, insertInAcroform)
+    : PdChoiceField(EPdfField::ListBox, pWidget, pDoc, insertInAcroform)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
 }
 
 PdfListBox::PdfListBox(PdfPage* pPage, const PdfRect& rRect)
-    : PdfListField(EPdfField::ListBox, pPage, rRect)
+    : PdChoiceField(EPdfField::ListBox, pPage, rRect)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
 }
 
 PdfListBox::PdfListBox(const PdfField& rhs)
-    : PdfListField(rhs)
+    : PdChoiceField(rhs)
 {
     if (this->GetType() != EPdfField::ListBox)
     {

@@ -7,7 +7,7 @@ namespace PoDoFo
 {
     /** A combo box with a drop down list of items.
      */
-    class PODOFO_DOC_API PdfComboBox : public PdfListField
+    class PODOFO_DOC_API PdfComboBox : public PdChoiceField
     {
         friend class PdfField;
     private:
