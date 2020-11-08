@@ -92,6 +92,21 @@ namespace PoDoFo::compat
     {
         return _byteswap_uint64(n);
     }
+
+    inline int16_t ByteSwap(int16_t n)
+    {
+        return (int16_t)_byteswap_ushort((uint16_t)n);
+    }
+
+    inline int32_t ByteSwap(int32_t n)
+    {
+        return (int32_t)_byteswap_ulong((uint32_t)n);
+    }
+
+    inline int64_t ByteSwap(int64_t n)
+    {
+        return (int64_t)_byteswap_uint64((uint64_t)n);
+    }
 #else
     inline uint16_t ByteSwap(uint16_t n)
     {
@@ -106,6 +121,21 @@ namespace PoDoFo::compat
     inline uint64_t ByteSwap(uint64_t n)
     {
         return __builtin_bswap64(n);
+    }
+
+    inline int16_t ByteSwap(int16_t n)
+    {
+        return (int16_t)__builtin_bswap16((uint16_t)n);
+    }
+
+    inline int32_t ByteSwap(int32_t n)
+    {
+        return (int32_t)__builtin_bswap32((uint32_t)n);
+    }
+
+    inline int64_t ByteSwap(int64_t n)
+    {
+        return (int64_t)__builtin_bswap64((uint64_t)n);
     }
 #endif
 
@@ -124,6 +154,21 @@ namespace PoDoFo::compat
     {
         return ByteSwap(n);
     }
+
+    inline int16_t HandleBigEndian(int16_t n)
+    {
+        return ByteSwap(n);
+    }
+
+    inline int32_t HandleBigEndian(int32_t n)
+    {
+        return ByteSwap(n);
+    }
+
+    inline int64_t HandleBigEndian(int64_t n)
+    {
+        return ByteSwap(n);
+    }
 #else
     inline uint16_t HandleBigEndian(uint16_t n)
     {
@@ -136,6 +181,21 @@ namespace PoDoFo::compat
     }
 
     inline uint64_t HandleBigEndian(uint64_t n)
+    {
+        return n;
+    }
+
+    inline int16_t HandleBigEndian(int16_t n)
+    {
+        return n;
+    }
+
+    inline int32_t HandleBigEndian(int32_t n)
+    {
+        return n;
+    }
+
+    inline int64_t HandleBigEndian(int64_t n)
     {
         return n;
     }

@@ -50,34 +50,12 @@
 using namespace std;
 using namespace PoDoFo;
 
-static const unsigned int __LENGTH_HEADER12      = 12;
-static const unsigned int __LENGTH_OFFSETTABLE16 = 16;
-static const unsigned int __LENGTH_DWORD	 = 4;
-static const unsigned int __LENGTH_WORD		 = 2;
+static constexpr unsigned LENGTH_HEADER12 = 12;
+static constexpr unsigned LENGTH_OFFSETTABLE16 = 16;
+static constexpr unsigned LENGTH_DWORD = 4;
+static constexpr unsigned LENGTH_WORD = 2;
 
-//Big-endian to little-endian or little-endian to big endian.
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-
-inline unsigned long Big2Little(unsigned long big)
-{
-    return ((big << 24) & 0xFF000000) | ((big << 8) & 0x00FF0000) | 
-        ((big >> 8) & 0x0000FF00) | ((big >> 24) & 0x000000FF) ;
-}
-
-inline unsigned short Big2Little(unsigned short big)
-{
-    return ((big << 8) & 0xFF00) | ((big >> 8) & 0x00FF);
-}
-
-inline short Big2Little(short big)
-{
-    return ((big << 8) & 0xFF00) | ((big >> 8) & 0x00FF);
-}
-#else
-#define Big2Little( x ) x
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-inline void TTFWriteUInt32(char *bufp, unsigned long value)
+inline void TTFWriteUInt32(char *bufp, uint32_t value)
 {
     bufp[0] = static_cast<char>(value >> 24);
     bufp[1] = static_cast<char>(value >> 16);
@@ -85,25 +63,26 @@ inline void TTFWriteUInt32(char *bufp, unsigned long value)
     bufp[3] = static_cast<char>(value);
 }
 
-inline void TTFWriteUInt16(char *bufp, unsigned short value)
+inline void TTFWriteUInt16(char *bufp, uint16_t value)
 {
     bufp[0] = static_cast<char>(value >> 8);
     bufp[1] = static_cast<char>(value);
 }
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
-static unsigned long TableCheksum(const char* bufp, unsigned long size);
-static unsigned short xln2(unsigned short v);
+static unsigned TableCheksum(const char* bufp, unsigned size);
+static uint16_t xln2(uint16_t v);
 
-static unsigned long TableCheksum(const char* bufp, unsigned long size)
+static unsigned TableCheksum(const char* bufp, unsigned size)
 {
-    unsigned long chksum = 0;
-    unsigned long v = 0;
-    for(unsigned long offset = 0; offset < size; offset += 4) {
-        v = ((static_cast<unsigned long>(bufp[offset + 0]) << 24) & 0xff000000) 
-          | ((static_cast<unsigned long>(bufp[offset + 1]) << 16) & 0x00ff0000) 
-          | ((static_cast<unsigned long>(bufp[offset + 2]) <<  8) & 0x0000ff00) 
-          | ((static_cast<unsigned long>(bufp[offset + 3])      ) & 0x000000ff);
+    unsigned chksum = 0;
+    unsigned v = 0;
+    for(unsigned offset = 0; offset < size; offset += 4)
+    {
+        v = ((static_cast<unsigned>(bufp[offset + 0]) << 24) & 0xff000000) 
+          | ((static_cast<unsigned>(bufp[offset + 1]) << 16) & 0x00ff0000) 
+          | ((static_cast<unsigned>(bufp[offset + 2]) <<  8) & 0x0000ff00) 
+          | ((static_cast<unsigned>(bufp[offset + 3])      ) & 0x000000ff);
         chksum += v;
     }
     return chksum;
@@ -119,21 +98,13 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
     const char* ext   = pname + strlen(pname) - 3;
 
     if (PoDoFo::compat::strcasecmp(ext,"ttf") == 0)
-    {
         m_eFontFileType = EFontFileType::TTF;
-    }
     else if (PoDoFo::compat::strcasecmp(ext,"ttc") == 0)
-    {
         m_eFontFileType = EFontFileType::TTC;
-    }
     else if (PoDoFo::compat::strcasecmp(ext,"otf") == 0)
-    {
         m_eFontFileType = EFontFileType::OTF;
-    }
     else
-    {
         m_eFontFileType = EFontFileType::Unknown;
-    }
 
     m_pDevice = new PdfInputDevice( (string_view)pszFontFileName );
 }
@@ -147,7 +118,8 @@ PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMe
 
 PdfFontTTFSubset::~PdfFontTTFSubset()
 {
-    if( m_bOwnDevice ) {
+    if( m_bOwnDevice )
+    {
         delete m_pDevice;
         m_pDevice = nullptr;
     }
@@ -162,7 +134,7 @@ void PdfFontTTFSubset::Init()
     SeeIfLongLocaOrNot();
 }
 
-unsigned long PdfFontTTFSubset::GetTableOffset( unsigned long tag )
+unsigned PdfFontTTFSubset::GetTableOffset( unsigned tag )
 {
     std::vector<TTrueTypeTable>::const_iterator it = m_vTable.begin();
 
@@ -176,58 +148,42 @@ unsigned long PdfFontTTFSubset::GetTableOffset( unsigned long tag )
 
 void PdfFontTTFSubset::GetNumberOfGlyphs()
 {
-    unsigned long ulOffset = GetTableOffset( TTAG_maxp );
+    unsigned ulOffset = GetTableOffset( TTAG_maxp );
 
-    GetData( ulOffset+__LENGTH_DWORD*1,&m_numGlyphs,__LENGTH_WORD);
-    m_numGlyphs = Big2Little(m_numGlyphs);
-
-    //std::cout << "numGlyphs: "<< m_numGlyphs << std::endl;
+    GetData(ulOffset + LENGTH_DWORD * 1 , &m_numGlyphs, LENGTH_WORD);
+    m_numGlyphs = FROM_BIG_ENDIAN(m_numGlyphs);
 
     ulOffset = GetTableOffset( TTAG_hhea );
 
-    GetData( ulOffset+__LENGTH_WORD*17, &m_numHMetrics, __LENGTH_WORD);
-    m_numHMetrics = Big2Little(m_numHMetrics);
-
-    //std::cout << "numHMetrics: "<< m_numHMetrics << std::endl;
+    GetData(ulOffset + LENGTH_WORD * 17, &m_numHMetrics, LENGTH_WORD);
+    m_numHMetrics = FROM_BIG_ENDIAN(m_numHMetrics);
 }
-
-#if UNUSED_CODE
-static void logTag(unsigned long tag)
-{
-    std::cout << "ttfTable="
-        << static_cast<char>(tag>>24) << static_cast<char>(tag>>16)
-        << static_cast<char>(tag>>8)  << static_cast<char>(tag)
-        << std::endl;
-}
-#endif
 
 void PdfFontTTFSubset::InitTables()
 {
     unsigned short tableMask = 0;
     TTrueTypeTable tbl;
 
-    //std::cout << "ttfTables" << std::endl;
     for (unsigned short i = 0; i < m_numTables; i++)
     {
-        //Name of each table:
-        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i, &tbl.tag, __LENGTH_DWORD );
-        tbl.tag = Big2Little(tbl.tag);
+        // Name of each table:
+        GetData(m_ulStartOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i, &tbl.tag, LENGTH_DWORD);
+        tbl.tag = FROM_BIG_ENDIAN(tbl.tag);
 
-        //Checksum of each table:
-        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*1,&tbl.checksum,__LENGTH_DWORD);
-        tbl.checksum = Big2Little(tbl.checksum);
+        // Checksum of each table:
+        GetData(m_ulStartOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 1, &tbl.checksum, LENGTH_DWORD);
+        tbl.checksum = FROM_BIG_ENDIAN(tbl.checksum);
 
-        //Offset of each table:
-        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*2,&tbl.offset,__LENGTH_DWORD);
-        tbl.offset = Big2Little(tbl.offset);
+        // Offset of each table:
+        GetData(m_ulStartOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 2, &tbl.offset, LENGTH_DWORD);
+        tbl.offset = FROM_BIG_ENDIAN(tbl.offset);
 
-        //Length of each table:
-        GetData( m_ulStartOfTTFOffsets+__LENGTH_HEADER12+__LENGTH_OFFSETTABLE16*i+__LENGTH_DWORD*3,&tbl.length,__LENGTH_DWORD);
-        tbl.length = Big2Little(tbl.length);
+        // Length of each table:
+        GetData(m_ulStartOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 3, &tbl.length, LENGTH_DWORD);
+        tbl.length = FROM_BIG_ENDIAN(tbl.length);
 
-        //logTag(tbl.tag);
-        //std::cout << " tableOffset=" << tbl.offset << " length=" << tbl.length << std::endl;
-        switch(tbl.tag) {
+        switch(tbl.tag)
+        {
             case TTAG_head:
                 tableMask |= 0x0001;
                 break;
@@ -235,7 +191,7 @@ void PdfFontTTFSubset::InitTables()
                 tableMask |= 0x0002; 
                 break;
             case TTAG_hhea:
-                /* required to get numHMetrics */
+                // required to get numHMetrics
                 tableMask |= 0x0004; 
                 break;
             case TTAG_glyf:
@@ -245,18 +201,18 @@ void PdfFontTTFSubset::InitTables()
                 tableMask |= 0x0010; 
                 break;
             case TTAG_hmtx:
-                /* advance width */
+                // advance width
                 tableMask |= 0x0020; 
                 break;
             case TTAG_cmap:
-                /* cmap table will be generated later */
+                // cmap table will be generated later
                 tableMask |= 0x0100;
                 break;
             case TTAG_post:
-                if (tbl.length < 32) {
+                if (tbl.length < 32)
                     tbl.tag = 0;
-        }
-                /* reduce table size, leter we will change format to 0x00030000 */
+ 
+                // reduce table size, leter we will change format to 0x00030000
                 tbl.length = 32;
                 break;
             case TTAG_cvt:
@@ -266,25 +222,24 @@ void PdfFontTTFSubset::InitTables()
             //case TTAG_name:
                 break;
             default:
-                /* exclude all other tables */
+                // exclude all other tables
                 tbl.tag = 0;
                 break;
         }
-        if (tbl.tag) {
-        m_vTable.push_back(tbl);		
-        }
+        if (tbl.tag)
+            m_vTable.push_back(tbl);		
     }
-    if ((tableMask & 0x3f )!= 0x3f) {
-        //std::cout << "ttfTables=" << std::hex << tableMask << std::dec << std::endl;
+    if ((tableMask & 0x3f )!= 0x3f)
+    {
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, "Required TrueType table missing" );
     }
-    if ((tableMask & 0x0100 ) == 0x00) {
+    if ((tableMask & 0x0100 ) == 0x00)
+    {
         tbl.tag = TTAG_cmap;
         tbl.checksum = 0;
         tbl.offset = 0;
         tbl.length = 0;
-        m_vTable.push_back(tbl);        
-
+        m_vTable.push_back(tbl);
     }
     m_numTables = static_cast<unsigned short>(m_vTable.size());
 }
@@ -299,12 +254,12 @@ void PdfFontTTFSubset::GetStartOfTTFOffsets()
             break;
         case EFontFileType::TTC:
         {
-            unsigned long ulnumFace;
-            GetData( 8,&ulnumFace,4);
-            ulnumFace = Big2Little(ulnumFace);
+            uint32_t ulnumFace;
+            GetData(8, &ulnumFace, LENGTH_DWORD);
+            ulnumFace = FROM_BIG_ENDIAN(ulnumFace);
 	    
-            GetData( (3+m_faceIndex)*__LENGTH_DWORD,&m_ulStartOfTTFOffsets,__LENGTH_DWORD);
-            m_ulStartOfTTFOffsets = Big2Little(m_ulStartOfTTFOffsets);
+            GetData((m_faceIndex + 3) * LENGTH_DWORD, &m_ulStartOfTTFOffsets, LENGTH_DWORD);
+            m_ulStartOfTTFOffsets = FROM_BIG_ENDIAN(m_ulStartOfTTFOffsets);
         }
         break;
         case EFontFileType::Unknown:
@@ -315,26 +270,25 @@ void PdfFontTTFSubset::GetStartOfTTFOffsets()
 
 void PdfFontTTFSubset::GetNumberOfTables()
 {
-    GetData( m_ulStartOfTTFOffsets+1*__LENGTH_DWORD,&m_numTables,__LENGTH_WORD);
-    m_numTables = Big2Little(m_numTables);
+    GetData(m_ulStartOfTTFOffsets + LENGTH_DWORD * 1, &m_numTables, LENGTH_WORD);
+    m_numTables = FROM_BIG_ENDIAN(m_numTables);
 }
 
 void PdfFontTTFSubset::SeeIfLongLocaOrNot()
 {
-    unsigned short usIsLong; //1 for long
-    unsigned long ulHeadOffset = GetTableOffset(TTAG_head);
-    GetData( ulHeadOffset+50,&usIsLong,__LENGTH_WORD);
-    usIsLong = Big2Little(usIsLong);
+    uint16_t usIsLong; //1 for long
+    unsigned ulHeadOffset = GetTableOffset(TTAG_head);
+    GetData(ulHeadOffset + 50, &usIsLong, LENGTH_WORD);
+    usIsLong = FROM_BIG_ENDIAN(usIsLong);
 	m_bIsLongLoca = (usIsLong == 0 ? false : true);
 }
 
-static unsigned short xln2(unsigned short v)
+uint16_t xln2(uint16_t v)
 {
-    unsigned short e = 0;
-
-    while (v >>= 1) {
+    uint16_t e = 0;
+    while (v >>= 1)
         ++e;
-    }
+
     return e;
 }
 
@@ -343,7 +297,8 @@ void PdfFontTTFSubset::BuildUsedCodes(CodePointToGid& usedCodes, const std::set<
     CodePoint codePoint;
     GID gid;
 
-    for (std::set<pdf_utf16be>::const_iterator it = usedChars.begin(); it != usedChars.end(); ++it) {
+    for (std::set<pdf_utf16be>::const_iterator it = usedChars.begin(); it != usedChars.end(); ++it)
+    {
         codePoint = *it;
         gid = static_cast<GID>( m_pMetrics->GetGlyphId( codePoint ) );
         usedCodes[codePoint] = gid;
@@ -354,18 +309,18 @@ void PdfFontTTFSubset::LoadGlyphs(GlyphContext& ctx, const CodePointToGid& usedC
 {
     // For any fonts, assume that glyph 0 is needed.
     LoadGID(ctx, 0);
-    for (CodePointToGid::const_iterator cit = usedCodes.begin(); cit != usedCodes.end(); ++cit) {
+    for (CodePointToGid::const_iterator cit = usedCodes.begin(); cit != usedCodes.end(); ++cit)
         LoadGID(ctx, cit->second);
-    }
+
     m_numGlyphs = 0;
     GlyphMap::reverse_iterator it = m_mGlyphMap.rbegin();
-    if (it != m_mGlyphMap.rend()) {
+    if (it != m_mGlyphMap.rend())
         m_numGlyphs = it->first;
-    }
+
     ++m_numGlyphs;
-    if (m_numHMetrics > m_numGlyphs) {
+    if (m_numHMetrics > m_numGlyphs)
         m_numHMetrics = m_numGlyphs;
-    }
+
 }
 	
 void PdfFontTTFSubset::LoadGID(GlyphContext& ctx, GID gid)
@@ -374,92 +329,87 @@ void PdfFontTTFSubset::LoadGID(GlyphContext& ctx, GID gid)
     {
         if (!m_mGlyphMap.count(gid))
         {
-            if (m_bIsLongLoca) {
-                GetData( ctx.ulLocaTableOffset+__LENGTH_DWORD*gid, &ctx.glyphData.glyphAddress, __LENGTH_DWORD);
-                ctx.glyphData.glyphAddress  = Big2Little(ctx.glyphData.glyphAddress);
+            if (m_bIsLongLoca)
+            {
+                GetData(ctx.ulLocaTableOffset + LENGTH_DWORD * gid, &ctx.glyphData.glyphAddress, LENGTH_DWORD);
+                ctx.glyphData.glyphAddress = FROM_BIG_ENDIAN(ctx.glyphData.glyphAddress);
 
-                GetData( ctx.ulLocaTableOffset+__LENGTH_DWORD*(gid+1), &ctx.glyphData.glyphLength, __LENGTH_DWORD);
-                ctx.glyphData.glyphLength  = Big2Little(ctx.glyphData.glyphLength);
-        }
-        else
-        {
-                GetData( ctx.ulLocaTableOffset+__LENGTH_WORD*gid, &ctx.shortOffset, __LENGTH_WORD);
-                ctx.glyphData.glyphAddress = Big2Little(ctx.shortOffset);
+                GetData(ctx.ulLocaTableOffset + LENGTH_DWORD * (gid + 1), &ctx.glyphData.glyphLength, LENGTH_DWORD);
+                ctx.glyphData.glyphLength = FROM_BIG_ENDIAN(ctx.glyphData.glyphLength);
+            }
+            else
+            {
+                GetData(ctx.ulLocaTableOffset + LENGTH_WORD * gid, &ctx.shortOffset, LENGTH_WORD);
+                ctx.glyphData.glyphAddress = FROM_BIG_ENDIAN(ctx.shortOffset);
                 ctx.glyphData.glyphAddress <<= 1;
 
-                GetData( ctx.ulLocaTableOffset+__LENGTH_WORD*(gid + 1), &ctx.shortOffset, __LENGTH_WORD);
-                ctx.glyphData.glyphLength = Big2Little(ctx.shortOffset);
+                GetData(ctx.ulLocaTableOffset + LENGTH_WORD * (gid + 1), &ctx.shortOffset, LENGTH_WORD);
+                ctx.glyphData.glyphLength = FROM_BIG_ENDIAN(ctx.shortOffset);
                 ctx.glyphData.glyphLength <<= 1;
-        }
+            }
             ctx.glyphData.glyphLength -= ctx.glyphData.glyphAddress;
-            //std::cout << "gid=" << std::hex << gid << " len=" << std::dec << ctx.glyphData.glyphLength << std::endl;
 
             m_mGlyphMap[gid] = ctx.glyphData;
 
-            GetData( ctx.ulGlyfTableOffset + ctx.glyphData.glyphAddress, &ctx.contourCount, __LENGTH_WORD);
-            ctx.contourCount = Big2Little(ctx.contourCount);
-            if (ctx.contourCount < 0) {
-                /* skeep over numberOfContours, xMin, yMin, xMax and yMax */
-                LoadCompound(ctx, ctx.glyphData.glyphAddress + 5 * __LENGTH_WORD);
-    }
+            GetData(ctx.ulGlyfTableOffset + ctx.glyphData.glyphAddress, &ctx.contourCount, LENGTH_WORD);
+            ctx.contourCount = FROM_BIG_ENDIAN(ctx.contourCount);
+            if (ctx.contourCount < 0)
+            {
+                // skeep over numberOfContours, xMin, yMin, xMax and yMax
+                LoadCompound(ctx, ctx.glyphData.glyphAddress + 5 * LENGTH_WORD);
+            }
         }
         return;
     }
     PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "GID out of range" );
 }
 
-void PdfFontTTFSubset::LoadCompound(GlyphContext& ctx, unsigned long offset)
+void PdfFontTTFSubset::LoadCompound(GlyphContext& ctx, unsigned offset)
 {
-    unsigned short flags;
-    unsigned short glyphIndex;
+    uint16_t flags;
+    uint16_t glyphIndex;
 	
-                const int ARG_1_AND_2_ARE_WORDS = 0x01;
+    const int ARG_1_AND_2_ARE_WORDS = 0x01;
     const int WE_HAVE_A_SCALE          = 0x08;
-                const int MORE_COMPONENTS       = 0x20;
+    const int MORE_COMPONENTS       = 0x20;
     const int WE_HAVE_AN_X_AND_Y_SCALE = 0x40;
     const int WE_HAVE_TWO_BY_TWO       = 0x80;
 
     while(true)
-                    {
-        GetData( ctx.ulGlyfTableOffset + offset, &flags,__LENGTH_WORD);
-        flags = Big2Little(flags);
+    {
+        GetData(ctx.ulGlyfTableOffset + offset, &flags, LENGTH_WORD);
+        flags = FROM_BIG_ENDIAN(flags);
                     
-        GetData( ctx.ulGlyfTableOffset + offset + __LENGTH_WORD, &glyphIndex, __LENGTH_WORD);
-                    glyphIndex = Big2Little( glyphIndex );
+        GetData(ctx.ulGlyfTableOffset + offset + LENGTH_WORD, &glyphIndex, LENGTH_WORD);
+        glyphIndex = FROM_BIG_ENDIAN(glyphIndex);
 
-        //std::cout << " comp gid=" << std::hex << glyphIndex << std::dec << std::endl;
         LoadGID(ctx, glyphIndex);
 
-        if (!(flags & MORE_COMPONENTS)) {
+        if (!(flags & MORE_COMPONENTS))
             break;
-        }
-        offset += (flags & ARG_1_AND_2_ARE_WORDS) ? 4 * __LENGTH_WORD : 3 * __LENGTH_WORD;
-        if (flags & WE_HAVE_A_SCALE) {
-            offset +=  __LENGTH_WORD;
-        }
-        else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) {
-            offset +=  2 * __LENGTH_WORD;
-            }
-        else if (flags & WE_HAVE_TWO_BY_TWO) {
-            offset +=  4 * __LENGTH_WORD;
-            }
-            }
-            }
 
-unsigned long PdfFontTTFSubset::GetHmtxTableSize()
+        offset += (flags & ARG_1_AND_2_ARE_WORDS) ? 4 * LENGTH_WORD : 3 * LENGTH_WORD;
+        if (flags & WE_HAVE_A_SCALE)
+            offset +=  LENGTH_WORD;
+        else if (flags & WE_HAVE_AN_X_AND_Y_SCALE)
+            offset +=  2 * LENGTH_WORD;
+        else if (flags & WE_HAVE_TWO_BY_TWO)
+            offset +=  4 * LENGTH_WORD;
+    }
+}
+
+unsigned PdfFontTTFSubset::GetHmtxTableSize()
 {
-    unsigned long tableLength = static_cast<unsigned long>(m_numGlyphs + m_numHMetrics) << 1;
-    //std::cout << "numGlyphs: "<< m_numGlyphs <<  " numHMetrics: " << m_numHMetrics << std::endl;
+    unsigned tableLength = static_cast<unsigned>(m_numGlyphs + m_numHMetrics) << 1;
     return tableLength;
 }
 	
-unsigned long PdfFontTTFSubset::GetCmapTableSize()
+unsigned PdfFontTTFSubset::GetCmapTableSize()
 {
-    unsigned tableSize = 0; //(m_sCMap.ranges.size() + 1) * 4 * __LENGTH_WORD;
-    tableSize += m_sCMap.segCount * 4 * __LENGTH_WORD + __LENGTH_WORD;
-    tableSize += (unsigned long)m_sCMap.glyphArray.size() * __LENGTH_WORD;
-    //std::cout << "cmapRanges: "<< m_sCMap.ranges.size() <<  " arraySize: " << m_sCMap.glyphArray.size() << std::endl;
-    return 12ul + 14ul + tableSize;
+    unsigned tableSize = 0;
+    tableSize += m_sCMap.segCount * 4 * LENGTH_WORD + LENGTH_WORD;
+    tableSize += (unsigned)m_sCMap.glyphArray.size() * LENGTH_WORD;
+    return tableSize + 12 + 14;
 }
 
 void PdfFontTTFSubset::CreateCmapTable( const CodePointToGid& usedCodes )
@@ -471,44 +421,45 @@ void PdfFontTTFSubset::CreateCmapTable( const CodePointToGid& usedCodes )
 
     CodePointToGid::const_iterator cit = usedCodes.begin();
     while (cit != usedCodes.end())
-        {
+    {
         range.endCode = range.startCode = static_cast<unsigned short>(cit->first);
         range.delta   = static_cast<short>( cit->second - cit->first );
         range.offset  = 0;
 
-        while (++cit != usedCodes.end()) {
-            if ((range.endCode + 1u) != cit->first) {
+        while (++cit != usedCodes.end())
+        {
+            if ((range.endCode + 1u) != cit->first)
                 break;
-            }
+
             ++range.endCode;
-            if (!range.offset) {
+            if (!range.offset)
                 range.offset = range.endCode + range.delta - cit->second;
-                    }
-                    }
-        if (range.offset) {
-            //range.delta = 0;
+        }
+
+        if (range.offset)
             arrayCount += range.endCode - range.startCode + 1;
-                    }
-        //std::cout << " sc=" << std::hex << range.startCode << " ec=" << range.endCode << " dc=" << range.startCode + range.delta << " of=" << range.offset << std::dec << std::endl;
+
         m_sCMap.ranges.push_back(range);
-                }
+    }
     m_sCMap.segCount = static_cast<unsigned short>(m_sCMap.ranges.size() + 1);
-    /* fill glyphArray */
-    if (arrayCount) {
+    // fill glyphArray
+    if (arrayCount)
+    {
         m_sCMap.glyphArray.reserve(arrayCount);
-        unsigned short arrayOffset  = m_sCMap.segCount * __LENGTH_WORD;
-        for (CMapRanges::iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
-            if (it->offset) {
+        unsigned short arrayOffset  = m_sCMap.segCount * LENGTH_WORD;
+        for (CMapRanges::iterator it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it)
+        {
+            if (it->offset)
+            {
                 it->offset = arrayOffset;
                 FillGlyphArray(usedCodes, it->startCode, it->endCode - it->startCode + 1);
-                arrayOffset += (it->endCode - it->startCode + 1) * __LENGTH_WORD;
-                }
-            arrayOffset -= __LENGTH_WORD;
-            //std::cout << " !sc=" << std::hex << it->startCode << " ec=" << it->endCode << " dc=" << it->startCode + it->delta << " of=" << it->offset << std::dec << std::endl;
+                arrayOffset += (it->endCode - it->startCode + 1) * LENGTH_WORD;
             }
-            }
+            arrayOffset -= LENGTH_WORD;
+        }
+    }
 	    
-    /* append final range */
+    // append final range
     range.endCode = range.startCode = static_cast<unsigned short>(~0u);
     range.offset  = range.delta = 0;
 
@@ -518,106 +469,110 @@ void PdfFontTTFSubset::CreateCmapTable( const CodePointToGid& usedCodes )
 void PdfFontTTFSubset::FillGlyphArray(const CodePointToGid& usedCodes, GID gid, unsigned short count)
 {
     CodePointToGid::const_iterator it = usedCodes.lower_bound(gid);
-    do {
-        if (it == usedCodes.end()) {
+    do
+    {
+        if (it == usedCodes.end())
             PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Unexpected" );
-        }
+
         m_sCMap.glyphArray.push_back(it->second);
         ++it;
     } while(--count);
 }
 
-unsigned long PdfFontTTFSubset::WriteCmapTable(char* bufp)
+unsigned PdfFontTTFSubset::WriteCmapTable(char* bufp)
 {
-    unsigned short offset = 12;
-    /* version and number of subtables */
+    unsigned offset = 12;
+    // version and number of subtables
     TTFWriteUInt16(bufp + 0, 0);
     TTFWriteUInt16(bufp + 2, 1);
         
-    /* platformID, platformSpecificID and offset */
+    // platformID, platformSpecificID and offset
     TTFWriteUInt16(bufp + 4, 3);
     TTFWriteUInt16(bufp + 6, 1);
     TTFWriteUInt32(bufp + 8, offset);
 
-    /* adjust bufp to begin of cmap format 4 table */
+    // adjust bufp to begin of cmap format 4 table
     bufp += offset;
 
-    /* format, length, language */
+    // format, length, language
     TTFWriteUInt16(bufp +  0, 4);
     TTFWriteUInt16(bufp +  2, 0);
     TTFWriteUInt16(bufp +  4, 0);
 
-    /* segCountX2 */
+    // segCountX2
     TTFWriteUInt16(bufp +  6, m_sCMap.segCount << 1);
 
-    unsigned short es = xln2(m_sCMap.segCount);
-    unsigned short sr = 1 << (es + 1);
-    /* searchRange */
+    uint16_t es = xln2(m_sCMap.segCount);
+    uint16_t sr = 1 << (es + 1);
+    // searchRange
     TTFWriteUInt16(bufp +  8, sr);
-    /* entrySelector */
+    // entrySelector
     TTFWriteUInt16(bufp + 10, es);
-    /* rangeShift */
+    // rangeShift
     TTFWriteUInt16(bufp + 12, (m_sCMap.segCount << 1) - sr);
 
-    /* adjust offset to first array */
+    // adjust offset to first array
     offset = 14;
 
     CMapRanges::const_iterator it;
 
-    /* write endCode array */
-    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    // write endCode array
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it)
+    {
         TTFWriteUInt16(bufp + offset, it->endCode);
-        offset += __LENGTH_WORD;
-        }
-    /* write reservedPad */
-    TTFWriteUInt16(bufp + offset, 0);
-    offset += __LENGTH_WORD;
-    /* write startCode array */
-    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
-        TTFWriteUInt16(bufp + offset, it->startCode);
-        offset += __LENGTH_WORD;
+        offset += LENGTH_WORD;
     }
-    /* write idDelta array */
-    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+    // write reservedPad
+    TTFWriteUInt16(bufp + offset, 0);
+    offset += LENGTH_WORD;
+    // write startCode array
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it)
+    {
+        TTFWriteUInt16(bufp + offset, it->startCode);
+        offset += LENGTH_WORD;
+    }
+    // write idDelta array
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it)
+    {
         TTFWriteUInt16(bufp + offset, it->delta);
-        offset += __LENGTH_WORD;
-            }
-    /* write idRangeOffset array */
-    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it) {
+        offset += LENGTH_WORD;
+    }
+    // write idRangeOffset array
+    for (it = m_sCMap.ranges.begin(); it != m_sCMap.ranges.end(); ++it)
+    {
         TTFWriteUInt16(bufp + offset, it->offset);
-        offset += __LENGTH_WORD;
-            }
+        offset += LENGTH_WORD;
+    }
     std::vector<unsigned short>::const_iterator uit;
-    /* write glyphIndexArray */
-    for (uit = m_sCMap.glyphArray.begin(); uit != m_sCMap.glyphArray.end(); ++uit) {
+    // write glyphIndexArray
+    for (uit = m_sCMap.glyphArray.begin(); uit != m_sCMap.glyphArray.end(); ++uit)
+    {
         TTFWriteUInt16(bufp + offset, *uit);
-        offset += __LENGTH_WORD;
-        }
-    /* update length of this table */
+        offset += LENGTH_WORD;
+    }
+    // update length of this table
     TTFWriteUInt16(bufp + 2, offset);
-    /* return total length of cmap tables */
-    return offset + 12ul;
+    // return total length of cmap tables
+    return offset + 12;
 }
 
 
-unsigned long PdfFontTTFSubset::GetGlyphTableSize()
+unsigned PdfFontTTFSubset::GetGlyphTableSize()
 {
-    unsigned long glyphTableSize = 0;
+    unsigned glyphTableSize = 0;
     for(GlyphMap::const_iterator it = m_mGlyphMap.begin(); it != m_mGlyphMap.end(); ++it)
-        {
         glyphTableSize += it->second.glyphLength;
-        }
+
     return glyphTableSize;
 }
 
-unsigned long PdfFontTTFSubset::WriteGlyphTable(char* bufp, unsigned long ulGlyphTableOffset)
+unsigned PdfFontTTFSubset::WriteGlyphTable(char* bufp, unsigned ulGlyphTableOffset)
 {
-    unsigned long offset = 0;
-    //std::cout << "glyfTable" << std::endl;
+    unsigned offset = 0;
     for(GlyphMap::const_iterator it = m_mGlyphMap.begin(); it != m_mGlyphMap.end(); ++it)
+    {
+        if (it->second.glyphLength)
         {
-        //std::cout << " gid=" << std::hex << it->first << " len=" << it->second.glyphLength << std::dec << std::endl;
-        if (it->second.glyphLength) {
             GetData( ulGlyphTableOffset + it->second.glyphAddress, bufp + offset, it->second.glyphLength);
             offset += it->second.glyphLength;
         }
@@ -625,73 +580,71 @@ unsigned long PdfFontTTFSubset::WriteGlyphTable(char* bufp, unsigned long ulGlyp
     return offset;
 }
 	
-unsigned long PdfFontTTFSubset::GetLocaTableSize()
+unsigned PdfFontTTFSubset::GetLocaTableSize()
 {
-    unsigned long offset = static_cast<unsigned long>(m_numGlyphs + 1);
+    unsigned offset = static_cast<unsigned>(m_numGlyphs + 1);
     return (m_bIsLongLoca) ? offset << 2 : offset << 1;
 }
 
-unsigned long PdfFontTTFSubset::WriteLocaTable(char* bufp)
+unsigned PdfFontTTFSubset::WriteLocaTable(char* bufp)
 {
     GID glyphIndex = 0;
-    unsigned long offset = 0;
-    unsigned long glyphAddress = 0;
+    unsigned offset = 0;
+    unsigned glyphAddress = 0;
 
-    //std::cout << "locaTable" << std::endl;
     if (m_bIsLongLoca)
-        {
+    {
         for(GlyphMap::const_iterator it = m_mGlyphMap.begin(); it != m_mGlyphMap.end(); ++it)
+        {
+            while(glyphIndex < it->first)
             {
-            while(glyphIndex < it->first) {
-                /* set the glyph length to zero */
-                //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << std::dec << std::endl;
+                // set the glyph length to zero
                 TTFWriteUInt32(bufp + offset, glyphAddress);
                 offset += 4;
                 ++glyphIndex;
             }
-            //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << " len=" << it->second.glyphLength << std::dec << std::endl;
+
             TTFWriteUInt32(bufp + offset, glyphAddress);
             glyphAddress += it->second.glyphLength;
             offset += 4;
             ++glyphIndex;
-            //std::cout << " gid=" << glyphIndex << " address=" << ulNextAddress << " length=" << it->glyphLength << std::endl;
-            }
-        //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << std::dec << std::endl;
+        }
+
         TTFWriteUInt32(bufp + offset, glyphAddress);
         offset += 4;
-            }
+    }
     else
-            {
+    {
         for(GlyphMap::const_iterator it = m_mGlyphMap.begin(); it != m_mGlyphMap.end(); ++it)
         {
-            while(glyphIndex < it->first) {
-                //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << std::dec << std::endl;
-                TTFWriteUInt16(bufp + offset, static_cast<unsigned short>(glyphAddress >> 1));
+            while(glyphIndex < it->first)
+            {
+                TTFWriteUInt16(bufp + offset, static_cast<uint16_t>(glyphAddress >> 1));
                 offset += 2;
                 ++glyphIndex;
             }
-            //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << " len=" << it->second.glyphLength << std::dec << std::endl;
-            TTFWriteUInt16(bufp + offset, static_cast<unsigned short>(glyphAddress >> 1));
+
+            TTFWriteUInt16(bufp + offset, static_cast<uint16_t>(glyphAddress >> 1));
             glyphAddress += it->second.glyphLength;
             offset += 2;
             ++glyphIndex;
         }
-        //std::cout << " gid=" << std::hex << glyphIndex << " offs=" << glyphAddress << std::dec << std::endl;
-        TTFWriteUInt16(bufp + offset, static_cast<unsigned short>(glyphAddress >> 1));
+
+        TTFWriteUInt16(bufp + offset, static_cast<uint16_t>(glyphAddress >> 1));
         offset += 2;
-            }
+    }
     return offset;
 }
         
-unsigned long PdfFontTTFSubset::CalculateSubsetSize()
-            {
-    unsigned long subsetLength = __LENGTH_HEADER12 + m_numTables * __LENGTH_OFFSETTABLE16;
-    unsigned long tableLength;
+unsigned PdfFontTTFSubset::CalculateSubsetSize()
+{
+    unsigned subsetLength = LENGTH_HEADER12 + m_numTables * LENGTH_OFFSETTABLE16;
+    unsigned tableLength;
 
-    //std::cout << "calcSubset" << std::endl;
     for (std::vector<TTrueTypeTable>::iterator it = m_vTable.begin(); it != m_vTable.end(); it++)
-                {
-        switch(it->tag) {
+    {
+        switch(it->tag)
+        {
             case TTAG_glyf:
                 tableLength = GetGlyphTableSize();
                 break;
@@ -707,13 +660,12 @@ unsigned long PdfFontTTFSubset::CalculateSubsetSize()
             default:
                 tableLength = it->length;
                 break;
-                    }
-        //logTag(it->tag);
-        //std::cout << " calcSize=" << tableLength << " before=" << it->length << std::endl;
+        }
+
         it->length = tableLength;
         subsetLength += (tableLength + 3) & ~3;
     }
-    //std::cout << "subsetSize=" << subsetLength << std::endl;
+
     return subsetLength;
 }
 
@@ -722,10 +674,10 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
     fontData.Resize( CalculateSubsetSize() );
     char *bufp = fontData.GetBuffer();
         
-    /* write TFF Offset table */
+    // write TFF Offset table
     {
-        unsigned short es = xln2(m_numTables);
-        unsigned short sr = es << 4;
+        uint16_t es = xln2(m_numTables);
+        uint16_t sr = es << 4;
 
         TTFWriteUInt32(bufp + 0, 0x00010000);
         TTFWriteUInt16(bufp + 4, m_numTables);
@@ -735,17 +687,17 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
         TTFWriteUInt16(bufp + 10, es);
     }
 
-    unsigned long headOffset = 0;
-    unsigned long dirOffset = __LENGTH_HEADER12;
-    unsigned long tableOffset = dirOffset + m_numTables * __LENGTH_OFFSETTABLE16;
-    unsigned long tableLength;
-    unsigned long totalLength;
+    unsigned headOffset = 0;
+    unsigned dirOffset = LENGTH_HEADER12;
+    unsigned tableOffset = dirOffset + m_numTables * LENGTH_OFFSETTABLE16;
+    unsigned tableLength;
+    unsigned totalLength;
 
     for (std::vector<TTrueTypeTable>::const_iterator it = m_vTable.begin(); it != m_vTable.end(); it++)
-                    {
-        //logTag(it->tag);
+    {
         tableLength = 0;
-        switch(it->tag) {
+        switch(it->tag)
+        {
             case TTAG_head:
                 headOffset = tableOffset;
                 tableLength = it->length;
@@ -773,29 +725,26 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
                 memset(bufp + tableOffset + 16, 0, 16);
                 break;
             case TTAG_glyf:
-                //std::cout << " calcLen=" << it->length << std::endl;
                 tableLength = WriteGlyphTable(bufp + tableOffset, it->offset);
                 break;
             case TTAG_loca:
-                //std::cout << " calcLen=" << it->length << std::endl;
                 tableLength = WriteLocaTable(bufp + tableOffset);
                 break;
             case TTAG_cmap:
-                //std::cout << " calcLen=" << it->length << std::endl;
                 tableLength = WriteCmapTable(bufp + tableOffset);
                 break;
             default:
                 tableLength = it->length;
                 GetData( it->offset, bufp + tableOffset, tableLength);
                 break;
-                    }
-        //std::cout << " tableOffset=" << tableOffset << " length=" << tableLength << std::endl;
-        if (tableLength) {
-            /* write TFF Directory table entry */
+        }
+
+        if (tableLength)
+        {
+            // write TFF Directory table entry
             totalLength = tableLength;
-            while(totalLength & 3ul) {
+            while(totalLength & 3)
                 bufp[tableOffset + totalLength++] = '\0';
-                }
 		
             TTFWriteUInt32(bufp + dirOffset, it->tag);
             TTFWriteUInt32(bufp + dirOffset +  4, TableCheksum(bufp + tableOffset, totalLength));
@@ -803,24 +752,21 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
             TTFWriteUInt32(bufp + dirOffset + 12, tableLength);
 
             tableOffset += totalLength;
-            dirOffset += 16ul;
-                }
-            }
-    //std::cout << " finalSize=" << tableOffset << " alloced=" << fontData.GetSize() << std::endl;
-    /* head table */
-    if (!headOffset) {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "'head' table missing" );
+            dirOffset += 16;
+        }
     }
+
+    // head table
+    if (!headOffset)
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "'head' table missing" );
+
     TTFWriteUInt32(bufp + headOffset + 8, TableCheksum(bufp, tableLength) - 0xB1B0AFBA);
 }
 	    
 void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<pdf_utf16be>& usedChars, std::vector<unsigned char>& cidSet )
 {
     Init();
-#if UNUSED_CODE
-    //Find the font offset table:
-    unsigned long ulStartOfTTFOffsets = m_ulStartOfTTFOffsets;
-#endif       
+
     GlyphContext context;
     context.ulGlyfTableOffset = GetTableOffset(TTAG_glyf);
     context.ulLocaTableOffset = GetTableOffset(TTAG_loca);
@@ -830,17 +776,17 @@ void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::
         BuildUsedCodes(usedCodes, usedChars);
         CreateCmapTable(usedCodes);
         LoadGlyphs(context, usedCodes);
-        }
-    //std::cout << "numGlyphs: "<< m_numGlyphs <<  " numHMetrics: " << m_numHMetrics << std::endl;
+    }
+
     if (m_numGlyphs)
-        {
+    {
         cidSet.assign((m_numGlyphs + 7) >> 3, 0);
         GlyphMap::reverse_iterator rit = m_mGlyphMap.rbegin();
-        //std::cout << "createCIDSet n=" << gidToCodePoint.size() << std::endl;
-        if (rit != m_mGlyphMap.rend()) {
+        if (rit != m_mGlyphMap.rend())
+        {
             static const unsigned char bits[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-            do {
-                //std::cout << " cid=" << rit->first << std::endl;
+            do
+            {
                 cidSet[rit->first >> 3] |= bits[rit->first & 7];
             } while(++rit != m_mGlyphMap.rend());    
         }
@@ -848,7 +794,7 @@ void PdfFontTTFSubset::BuildFont( PdfRefCountedBuffer& outputBuffer, const std::
     WriteTables(outputBuffer);
 }
 
-void PdfFontTTFSubset::GetData(unsigned long offset, void* address, unsigned long sz)
+void PdfFontTTFSubset::GetData(unsigned offset, void* address, unsigned sz)
 {
     m_pDevice->Seek( offset );
     m_pDevice->Read( static_cast<char*>(address), sz );

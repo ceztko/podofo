@@ -113,7 +113,7 @@ private:
     /** Get the offset of a specified table. 
      *  @param pszTableName name of the table
      */
-    unsigned long GetTableOffset( unsigned long tag );
+    unsigned GetTableOffset(unsigned tag);
 
     void GetNumberOfTables();
     void GetNumberOfGlyphs();
@@ -124,7 +124,7 @@ private:
     /** Get sz bytes from the offset'th bytes of the input file
      *
      */
-    void GetData(unsigned long offset, void* address, unsigned long sz);
+    void GetData(unsigned offset, void* address, unsigned sz);
 
 
     /** Information of TrueType tables.
@@ -136,32 +136,34 @@ private:
         {
         }
         
-	    unsigned long tag;
-	    unsigned long checksum;
-	    unsigned long length;
-	    unsigned long offset;
+        uint32_t tag;
+        uint32_t checksum;
+        uint32_t length;
+        uint32_t offset;
     };
 
     /** GlyphData contains the glyph address relative 
      *  to the beginning of the glyf table.
      */
-    class TGlyphData {
+    class TGlyphData
+    {
     public:
         TGlyphData()
             : glyphLength( 0L ), glyphAddress( 0L )
         {
         }
         
-        unsigned long glyphLength;
-	    unsigned long glyphAddress;	//In the original truetype file.
+        uint32_t glyphLength;
+        uint32_t glyphAddress;	//In the original truetype file.
     };
 
     typedef unsigned short GID;
-    typedef unsigned long CodePoint;
+    typedef unsigned CodePoint;
     typedef std::map<GID, TGlyphData> GlyphMap;
     typedef std::map<CodePoint, GID> CodePointToGid;
 
-    class CMapv4Range {
+    class CMapv4Range
+    {
     public:
         CMapv4Range()
             : endCode( 0 ), startCode( 0 ), delta( 0 ), offset( 0 )
@@ -188,35 +190,36 @@ private:
 	    std::vector<unsigned short> glyphArray;
     };
 
-    class GlyphContext {
+    class GlyphContext
+    {
     public:
         GlyphContext()
             : ulGlyfTableOffset( 0 ), ulLocaTableOffset( 0 ), contourCount( 0 ) , shortOffset( 0 )
         {
         }
         
-        unsigned long ulGlyfTableOffset;
-        unsigned long ulLocaTableOffset;
+        unsigned ulGlyfTableOffset;
+        unsigned ulLocaTableOffset;
         /* Used internaly during recursive load */
         TGlyphData glyphData;
-        short contourCount;
-        unsigned short shortOffset;
+        int16_t contourCount;
+        uint16_t shortOffset;
     };
 
     void BuildUsedCodes(CodePointToGid& usedCodes, const std::set<pdf_utf16be>& usedChars );
     void LoadGlyphs(GlyphContext& ctx, const CodePointToGid& usedCodes);
     void LoadGID(GlyphContext& ctx, GID gid);
-    void LoadCompound(GlyphContext& ctx, unsigned long offset);
+    void LoadCompound(GlyphContext& ctx, unsigned offset);
     void CreateCmapTable( const CodePointToGid& usedCodes );
     void FillGlyphArray(const CodePointToGid& usedCodes, GID gid, unsigned short count);
-    unsigned long GetCmapTableSize();
-    unsigned long WriteCmapTable(char*);
-    unsigned long GetGlyphTableSize();
-    unsigned long WriteGlyphTable(char* bufp, unsigned long ulGlyphTableOffset);
-    unsigned long GetLocaTableSize();
-    unsigned long WriteLocaTable(char* bufp);
-    unsigned long GetHmtxTableSize();
-    unsigned long CalculateSubsetSize();
+    unsigned GetCmapTableSize();
+    unsigned WriteCmapTable(char*);
+    unsigned GetGlyphTableSize();
+    unsigned WriteGlyphTable(char* bufp, unsigned ulGlyphTableOffset);
+    unsigned GetLocaTableSize();
+    unsigned WriteLocaTable(char* bufp);
+    unsigned GetHmtxTableSize();
+    unsigned CalculateSubsetSize();
     void WriteTables(PdfRefCountedBuffer& fontData);
 
 private:
@@ -224,9 +227,9 @@ private:
     EFontFileType   m_eFontFileType;
     bool	        m_bIsLongLoca;
     
-    unsigned short  m_numTables;
-    unsigned short  m_numGlyphs;
-    unsigned short  m_numHMetrics;
+    uint16_t m_numTables;
+    uint16_t m_numGlyphs;
+    uint16_t m_numHMetrics;
     
     std::vector<TTrueTypeTable> m_vTable;
     GlyphMap m_mGlyphMap;
@@ -236,16 +239,11 @@ private:
 
     unsigned short  m_faceIndex;
 
-    unsigned long   m_ulStartOfTTFOffsets;	///< Start address of the truetype offset tables, differs from ttf to ttc.
+    uint32_t m_ulStartOfTTFOffsets;	///< Start address of the truetype offset tables, differs from ttf to ttc.
 
     PdfInputDevice* m_pDevice;                  ///< Read data from this input device
     const bool      m_bOwnDevice;               ///< If the input device is owned by this object
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-
 
 }; /* PoDoFo */
 
