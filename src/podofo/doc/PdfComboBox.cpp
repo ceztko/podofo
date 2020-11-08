@@ -20,15 +20,6 @@ PdfComboBox::PdfComboBox(PdfPage* pPage, const PdfRect& rRect)
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), true);
 }
 
-PdfComboBox::PdfComboBox(const PdfField& rhs)
-    : PdChoiceField(rhs)
-{
-    if (this->GetType() != EPdfField::ComboBox)
-    {
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Field cannot be converted into a PdfTextField");
-    }
-}
-
 void PdfComboBox::SetEditable(bool bEdit)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Edit), bEdit);

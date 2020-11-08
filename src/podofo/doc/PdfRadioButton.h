@@ -23,11 +23,6 @@ namespace PoDoFo
         /** Create a new PdfRadioButton
          */
         PdfRadioButton(PdfPage* pPage, const PdfRect& rRect);
-
-        /** Create a PdfRadioButton from a PdfField
-         *  \param rhs a PdfField that is a radio button
-         */
-        PdfRadioButton(const PdfField& rhs);
     };
 }
 

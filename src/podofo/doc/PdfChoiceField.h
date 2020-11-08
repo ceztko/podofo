@@ -40,13 +40,6 @@ namespace PoDoFo
         PdChoiceField(EPdfField eField, PdfPage* pPage, const PdfRect& rRect);
 
     public:
-        /** Create a PdChoiceField from a PdfField
-         *  \param rhs a PdfField that is a list field
-         *
-         *  Internal usage only.
-         */
-        PdChoiceField(const PdfField& rhs);
-
         /**
          * Inserts a new item into the list
          *

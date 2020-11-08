@@ -25,13 +25,6 @@ namespace PoDoFo
          */
         PdfPushButton(PdfPage* pPage, const PdfRect& rRect);
 
-        /** Create a PdfPushButton from a PdfField
-         *  \param rhs a PdfField that is a push button button
-         *
-         *  Raises an error if PdfField::GetType() != EPdfField::PushButton
-         */
-        PdfPushButton(const PdfField& rhs);
-
         /** Set the rollover caption of this button
          *  which is displayed when the cursor enters the field
          *  without the mouse button being pressed

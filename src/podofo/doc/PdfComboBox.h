@@ -22,14 +22,6 @@ namespace PoDoFo
          */
         PdfComboBox(PdfPage* pPage, const PdfRect& rRect);
 
-        /** Create a PdfComboBox from a PdfField
-         *
-         *  \param rhs a PdfField that is a PdfComboBox
-         *
-         *  Raises an error if PdfField::GetType() != EPdfField::ComboBox
-         */
-        PdfComboBox(const PdfField& rhs);
-
         /**
          * Sets the combobox to be editable
          *

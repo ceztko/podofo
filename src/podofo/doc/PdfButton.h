@@ -30,14 +30,6 @@ namespace PoDoFo
         PdfButton(EPdfField eField, PdfPage* pPage, const PdfRect& rRect);
 
     public:
-
-        /** Create a PdfButton from a PdfField
-         *  \param rhs a PdfField that is a button
-         *
-         *  Internal usage only.
-         */
-        PdfButton(const PdfField& rhs);
-
         /**
          * \returns true if this is a pushbutton
          */

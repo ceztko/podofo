@@ -19,15 +19,6 @@ PdfCheckBox::PdfCheckBox(PdfPage* pPage, const PdfRect& rRect)
 {
 }
 
-PdfCheckBox::PdfCheckBox(const PdfField& rhs)
-    : PdfButton(rhs)
-{
-    if (this->GetType() != EPdfField::CheckBox)
-    {
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Field cannot be converted into a PdfCheckBox");
-    }
-}
-
 void PdfCheckBox::AddAppearanceStream(const PdfName& rName, const PdfReference& rReference)
 {
     if (!GetFieldObject()->GetDictionary().HasKey(PdfName("AP")))

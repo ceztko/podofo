@@ -21,15 +21,6 @@ namespace PoDoFo
         /** Create a new PdfListBox
          */
         PdfListBox(PdfPage* pPage, const PdfRect& rRect);
-
-        /** Create a PdfListBox from a PdfField
-         *
-         *  \param rhs a PdfField that is a PdfComboBox
-         *
-         *  Raises an error if PdfField::GetType() != EPdfField::ListBox
-         */
-        PdfListBox(const PdfField& rhs);
-
     };
 }
 

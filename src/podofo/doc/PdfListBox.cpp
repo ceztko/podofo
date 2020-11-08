@@ -19,12 +19,3 @@ PdfListBox::PdfListBox(PdfPage* pPage, const PdfRect& rRect)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
 }
-
-PdfListBox::PdfListBox(const PdfField& rhs)
-    : PdChoiceField(rhs)
-{
-    if (this->GetType() != EPdfField::ListBox)
-    {
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Field cannot be converted into a PdfTextField");
-    }
-}

@@ -17,8 +17,3 @@ PdfRadioButton::PdfRadioButton(PdfPage* pPage, const PdfRect& rRect)
     : PdfButton(EPdfField::RadioButton, pPage, rRect)
 {
 }
-
-PdfRadioButton::PdfRadioButton(const PdfField& rhs)
-    : PdfButton(rhs)
-{
-}

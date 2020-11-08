@@ -21,15 +21,6 @@ PdfPushButton::PdfPushButton(PdfPage* pPage, const PdfRect& rRect)
     Init();
 }
 
-PdfPushButton::PdfPushButton(const PdfField& rhs)
-    : PdfButton(rhs)
-{
-    if (this->GetType() != EPdfField::CheckBox)
-    {
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Field cannot be converted into a PdfPushButton");
-    }
-}
-
 void PdfPushButton::Init()
 {
     // make a push button

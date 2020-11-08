@@ -24,13 +24,6 @@ namespace PoDoFo
          */
         PdfCheckBox(PdfPage* pPage, const PdfRect& rRect);
 
-        /** Create a PdfCheckBox from a PdfField
-         *  \param rhs a PdfField that is a check box
-         *
-         *  Raises an error if PdfField::GetType() != EPdfField::CheckBox
-         */
-        PdfCheckBox(const PdfField& rhs);
-
         /** Set the appearance stream which is displayed when the checkbox
          *  is checked.
          *
