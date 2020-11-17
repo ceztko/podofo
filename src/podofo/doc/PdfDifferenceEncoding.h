@@ -240,7 +240,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -250,7 +250,7 @@ public:
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
+    std::string ConvertToEncoding(const std::string_view& rString) const override;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between

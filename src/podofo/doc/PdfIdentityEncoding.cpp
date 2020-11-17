@@ -72,11 +72,11 @@ char32_t PdfIdentityEncoding::GetCharCode( int nIndex ) const
     return (char32_t)nIndex;
 }
 
-string PdfIdentityEncoding::ConvertToUnicode(const string_view& rEncodedString, const PdfFont* pFont) const
+string PdfIdentityEncoding::ConvertToUnicode(const string_view& rEncodedString) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
+        return PdfEncoding::ConvertToUnicode(rEncodedString);
     }
     else
     {
@@ -85,16 +85,11 @@ string PdfIdentityEncoding::ConvertToUnicode(const string_view& rEncodedString, 
     }
 }
 
-string PdfIdentityEncoding::ConvertToEncoding(const string_view& str, const PdfFont* pFont) const
+string PdfIdentityEncoding::ConvertToEncoding(const string_view& str) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToEncoding(str, pFont);
-    }
-    else if( pFont ) 
-    {
-        throw runtime_error("Untested after utf-8 migration");
-        return (string)str;
+        return PdfEncoding::ConvertToEncoding(str);
     }
     else
     {

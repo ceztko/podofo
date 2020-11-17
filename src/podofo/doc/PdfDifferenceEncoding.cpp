@@ -2535,12 +2535,10 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName( char32_t inCodePoint )
     //return PdfName(".notdef");
 }
 
-string PdfDifferenceEncoding::ConvertToUnicode(const string_view& rEncodedString, const PdfFont* pFont) const
+string PdfDifferenceEncoding::ConvertToUnicode(const string_view& rEncodedString) const
 {
-    const PdfEncoding* pEncoding = GetBaseEncoding();
-    
-    PdfString unistr  = pEncoding->ConvertToUnicode(rEncodedString, pFont);
-    auto &str = unistr.GetString();
+    auto pEncoding = GetBaseEncoding();
+    auto str = pEncoding->ConvertToUnicode(rEncodedString);
     string ret;
     for (size_t i = 0; i < str.size(); i++)
     {
@@ -2553,11 +2551,11 @@ string PdfDifferenceEncoding::ConvertToUnicode(const string_view& rEncodedString
     return ret;
 }
 
-string PdfDifferenceEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* /*pFont*/) const
+string PdfDifferenceEncoding::ConvertToEncoding(const string_view& rString) const
 {
     throw runtime_error("Untested after utf-8 migration");
 
-    const PdfEncoding* pEncoding = GetBaseEncoding();
+    auto pEncoding = GetBaseEncoding();
 
     string ret;
     auto it = rString.begin();

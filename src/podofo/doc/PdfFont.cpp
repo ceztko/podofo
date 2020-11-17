@@ -142,7 +142,7 @@ void PdfFont::WriteStringToStream(const string_view& rsString, PdfStream* pStrea
 
 void PdfFont::WriteStringToStream(const string_view& rsString, ostream& rStream)
 {
-    auto encoded = m_pEncoding->ConvertToEncoding( rsString, this );
+    auto encoded = m_pEncoding->ConvertToEncoding(rsString);
     size_t lLen = 0;
 
     unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );

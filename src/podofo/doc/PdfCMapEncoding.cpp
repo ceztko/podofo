@@ -51,10 +51,7 @@
 #include <string>
 
 using namespace std;
-
-namespace PoDoFo
-{
-
+using namespace PoDoFo;
 
 PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
     : PdfEncoding(0x0000, 0xffff, pToUnicode), m_baseEncoding( EBaseEncoding::Font )
@@ -99,11 +96,11 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-string PdfCMapEncoding::ConvertToUnicode(const string_view& rString, const PdfFont* pFont) const
+string PdfCMapEncoding::ConvertToUnicode(const string_view& rString) const
 {
     if(IsToUnicodeLoaded())
     {
-        return PdfEncoding::ConvertToUnicode(rString, pFont);
+        return PdfEncoding::ConvertToUnicode(rString);
     }
     else
     {
@@ -114,18 +111,18 @@ string PdfCMapEncoding::ConvertToUnicode(const string_view& rString, const PdfFo
     }
 }
 
-string PdfCMapEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* pFont) const
+string PdfCMapEncoding::ConvertToEncoding(const string_view& rString) const
 {
     if(IsToUnicodeLoaded())
     {
-        return PdfEncoding::ConvertToEncoding(rString, pFont);
+        return PdfEncoding::ConvertToEncoding(rString);
     }
     else
     {
         if (m_toUnicode.empty())
             return { };
 
-        return convertToEncoding(rString, m_toUnicode, pFont);
+        return convertToEncoding(rString, m_toUnicode);
     }
 }
 
@@ -158,5 +155,3 @@ const PdfName & PdfCMapEncoding::GetID() const
 {
     PODOFO_RAISE_ERROR( EPdfError::NotImplemented );
 }
-
-};

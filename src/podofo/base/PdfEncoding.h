@@ -134,7 +134,7 @@ public:
      */
     virtual void AddToDictionary( PdfDictionary & rDictionary ) const = 0;
 
-    std::string ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const;
+    std::string ConvertToUnicode(const PdfString& rEncodedString) const;
 
     /** Convert a string that is encoded with this encoding
      *  to an unicode PdfString.
@@ -145,7 +145,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    virtual std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const;
+    virtual std::string ConvertToUnicode(const std::string_view& rEncodedString) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -155,7 +155,7 @@ public:
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const;
+    virtual std::string ConvertToEncoding(const std::string_view& rString) const;
 
     virtual bool IsAutoDelete() const = 0;
 
@@ -194,7 +194,7 @@ private:
 protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);
     static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
-    static std::string convertToEncoding(const std::string_view& rString, const UnicodeMap &map, const PdfFont* pFont);
+    static std::string convertToEncoding(const std::string_view& rString, const UnicodeMap &map);
     static std::string convertToUnicode(const std::string_view& rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
     static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
@@ -277,7 +277,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -287,7 +287,7 @@ public:
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
+    std::string ConvertToEncoding(const std::string_view& rString) const override;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between

@@ -79,14 +79,13 @@ PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
 
 PdfEncoding::~PdfEncoding() { }
 
-string PdfEncoding::ConvertToUnicode(const PdfString& encodedStr, const PdfFont* pFont) const
+string PdfEncoding::ConvertToUnicode(const PdfString& encodedStr) const
 {
-    return ConvertToUnicode(encodedStr.GetRawData(), pFont);
+    return ConvertToUnicode(encodedStr.GetRawData());
 }
 
-string PdfEncoding::ConvertToUnicode(const string_view& encodedStr, const PdfFont *pFont) const
+string PdfEncoding::ConvertToUnicode(const string_view& encodedStr) const
 {
-    (void)pFont;
     if (m_toUnicode.empty())
         return { };
 
@@ -137,19 +136,18 @@ string PdfEncoding::convertToUnicode(const string_view& encodedStr, const Unicod
     return ret;
 }
 
-string PdfEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* pFont) const
+string PdfEncoding::ConvertToEncoding(const string_view& rString) const
 {
     if (m_toUnicode.empty())
         return { };
 
-    return convertToEncoding( rString, m_toUnicode, pFont );
+    return convertToEncoding(rString, m_toUnicode);
 }
 
-string PdfEncoding::convertToEncoding(const string_view& rString, const UnicodeMap &map, const PdfFont *pFont )
+string PdfEncoding::convertToEncoding(const string_view& rString, const UnicodeMap &map)
 {
     (void)rString;
     (void)map;
-    (void)pFont;
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
@@ -478,11 +476,11 @@ char32_t PdfSimpleEncoding::GetCharCode( int nIndex ) const
 
 }
 
-string PdfSimpleEncoding::ConvertToUnicode(const string_view& rawstr, const PdfFont* pFont) const
+string PdfSimpleEncoding::ConvertToUnicode(const string_view& rawstr) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToUnicode(rawstr, pFont);
+        return PdfEncoding::ConvertToUnicode(rawstr);
     }
     else
     {
@@ -500,11 +498,11 @@ string PdfSimpleEncoding::ConvertToUnicode(const string_view& rawstr, const PdfF
     }
 }
 
-string PdfSimpleEncoding::ConvertToEncoding(const string_view& str, const PdfFont* pFont) const
+string PdfSimpleEncoding::ConvertToEncoding(const string_view& str) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToEncoding(str, pFont);
+        return PdfEncoding::ConvertToEncoding(str);
     }
     else
     {
