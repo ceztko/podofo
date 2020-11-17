@@ -120,9 +120,11 @@ PdfPainter::~PdfPainter() noexcept(false)
     // Note that we can't do this for the user, since FinishPage() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-    if( m_stream )
-        PdfError::LogMessage( ELogSeverity::Error, 
-                              "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
+    if (m_stream != nullptr)
+    {
+        PdfError::LogMessage(ELogSeverity::Error,
+            "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!");
+    }
 
     PODOFO_ASSERT( !m_stream );
 }

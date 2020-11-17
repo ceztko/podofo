@@ -143,7 +143,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
+    virtual std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -193,7 +193,7 @@ protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);
     static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
     static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
-    static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
+    static std::string convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
     static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
 private:
@@ -257,8 +257,9 @@ inline int PdfEncoding::GetLastChar() const
  *  \see PdfZapfDingbatsEncoding
  *
  */
-class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
- public:
+class PODOFO_API PdfSimpleEncoding : public PdfEncoding
+{
+public:
     /*
      *  Create a new simple PdfEncoding which uses 1 byte.
      *
@@ -306,7 +307,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  \returns an unicode PdfString.
      */
-    PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
+    std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -317,29 +318,6 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
     PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
-
-    /** 
-     * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
-     * they are allocated statically only once.
-     *
-     * \returns true if this encoding should be deleted automatically with the
-     *          font.
-     *
-     * \see PdfFont::WinAnsiEncoding
-     * \see PdfFont::MacRomanEncoding
-     */
-    bool IsAutoDelete() const override;
-
-    /** 
-     *  \returns true if this is a single byte encoding with a maximum of 256 values.
-     */
-    inline bool IsSingleByteEncoding() const override;
-
-    /** Get the name of this encoding.
-     *  
-     *  \returns the name of this encoding.
-     */
-    inline const PdfName & GetName() const;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
@@ -357,6 +335,29 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
 
     char GetUnicodeCharCode(char32_t unicodeValue) const;
 
+    /**
+     * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
+     * they are allocated statically only once.
+     *
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     *
+     * \see PdfFont::WinAnsiEncoding
+     * \see PdfFont::MacRomanEncoding
+     */
+    inline bool IsAutoDelete() const override { return false; }
+
+    /**
+     *  \returns true if this is a single byte encoding with a maximum of 256 values.
+     */
+    inline bool IsSingleByteEncoding() const override { return true; }
+
+    /** Get the name of this encoding.
+     *
+     *  \returns the name of this encoding.
+     */
+    inline const PdfName& GetName() const { return m_name; }
+
  private:
     /** Initialize the internal table of mappings from unicode code points
      *  to encoded byte values.
@@ -370,7 +371,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  \returns a unique id for this encoding!
      */
-    inline const PdfName & GetID() const override;
+     inline const PdfName& GetID() const override { return m_name; }
 
     /** Gets a table of 256 short values which are the 
      *  big endian unicode code points that are assigned
@@ -389,39 +390,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
  private:
     PdfName m_name;           ///< The name of the encoding
     char*   m_pEncodingTable; ///< The helper table for conversions into this encoding
-}; 
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfName & PdfSimpleEncoding::GetID() const
-{
-    return m_name;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfSimpleEncoding::IsAutoDelete() const
-{
-    return false;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfSimpleEncoding::IsSingleByteEncoding() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfName & PdfSimpleEncoding::GetName() const
-{
-    return m_name;
-}
+};
 
 /** 
  * The PdfDocEncoding is the default encoding for

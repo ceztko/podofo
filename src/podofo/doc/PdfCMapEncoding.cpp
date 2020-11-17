@@ -99,7 +99,7 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfFont* pFont) const
+string PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfFont* pFont) const
 {
     if(IsToUnicodeLoaded())
     {
@@ -108,7 +108,7 @@ PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfF
     else
     {
         if (m_toUnicode.empty())
-            return PdfString();
+            return { };
 
         return convertToUnicode(rString, m_toUnicode, m_maxCodeRangeSize);
     }

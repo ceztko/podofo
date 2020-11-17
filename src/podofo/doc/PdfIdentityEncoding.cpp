@@ -73,7 +73,7 @@ char32_t PdfIdentityEncoding::GetCharCode( int nIndex ) const
     return (char32_t)nIndex;
 }
 
-PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
+string PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
 {
     if( IsToUnicodeLoaded() )
     {
@@ -82,7 +82,7 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
     else
     {
         /* Identity-H means 1-1 mapping */	  
-        return rEncodedString;
+        return rEncodedString.GetRawData();
     }
 }
 

@@ -74,7 +74,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  \returns an unicode PdfString.
      */
-    PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
+    std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *

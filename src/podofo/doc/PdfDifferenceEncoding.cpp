@@ -46,7 +46,8 @@
 
 #include "PdfFont.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 static struct {
     char32_t u; // in fact this might be little endian on LE systems
@@ -2534,14 +2535,14 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName( char32_t inCodePoint )
     //return PdfName(".notdef");
 }
 
-PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString, 
+string PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString,
                                                    const PdfFont* pFont ) const
 {
     const PdfEncoding* pEncoding = GetBaseEncoding();
     
     PdfString unistr  = pEncoding->ConvertToUnicode(rEncodedString, pFont);
     auto &str = unistr.GetString();
-    std::string ret;
+    string ret;
     for (size_t i = 0; i < str.size(); i++)
     {
         PdfName name;
@@ -2550,8 +2551,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
             utf8::append(value, std::back_inserter(ret));
     }
 
-
-    return PdfString(ret);
+    return ret;
 }
 
 PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
@@ -2604,5 +2604,3 @@ const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
 
     return pEncoding;
 }
-
-}; /* PoDoFo */

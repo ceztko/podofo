@@ -79,20 +79,20 @@ PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
 
 PdfEncoding::~PdfEncoding() { }
 
-PdfString PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont *pFont ) const
+string PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont *pFont ) const
 {
     (void)pFont;
 
     if (m_toUnicode.empty())
-        return PdfString();
+        return { };
 
     return convertToUnicode( rString, m_toUnicode, m_maxCodeRangeSize);
 }
 
-PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const UnicodeMap &map, unsigned maxCodeRangeSize)
+string PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const UnicodeMap &map, unsigned maxCodeRangeSize)
 {
     auto& rawstr = rEncodedString.GetRawData();
-    string u8str;
+    string ret;
     const char * pCurr = rawstr.data();
     const char * pEnd = pCurr + rawstr.size();
     while (pCurr != pEnd)
@@ -120,7 +120,7 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
                 continue;
             }
 
-            u8str.append(found->second);
+            ret.append(found->second);
             pCurr++;
             break;
         }
@@ -131,7 +131,6 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
         }
     }
     
-    PdfString ret({ u8str.data(), u8str.size() });
     return ret;
 }
 
@@ -466,7 +465,7 @@ char32_t PdfSimpleEncoding::GetCharCode( int nIndex ) const
 
 }
 
-PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont) const
+string PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
@@ -477,15 +476,15 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
         auto &rawstr = rEncodedString.GetRawData();
         if (rawstr.size() == 0)
-            return PdfString();
+            return { };
 
-        string u8str;
-        u8str.reserve(rawstr.size());
+        string ret;
+        ret.reserve(rawstr.size());
         const char* pszString = rawstr.data();
         for(size_t i = 0 ; i < rawstr.size(); i++)
-            utf8::append(cpUnicodeTable[static_cast<unsigned char>(rawstr[i])], u8str);
+            utf8::append(cpUnicodeTable[static_cast<unsigned char>(rawstr[i])], ret);
 
-        return PdfString(u8str);;
+        return ret;
     }
 }
 
