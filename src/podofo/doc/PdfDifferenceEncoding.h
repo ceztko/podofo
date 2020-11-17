@@ -42,14 +42,15 @@
 
 namespace PoDoFo {
 
-
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
-class PODOFO_DOC_API PdfEncodingDifference {
-    struct TDifference {
-        int         nCode;
-        PdfName     name;
+class PODOFO_DOC_API PdfEncodingDifference
+{
+    struct TDifference
+    {
+        int nCode;
+        PdfName name;
         char32_t unicodeValue;
     };
 
@@ -57,7 +58,7 @@ class PODOFO_DOC_API PdfEncodingDifference {
     typedef std::vector<TDifference>::iterator       TIVecDifferences;
     typedef std::vector<TDifference>::const_iterator TCIVecDifferences;
 
- public: 
+public: 
     /** Create a PdfEncodingDifference object.
      */
     PdfEncodingDifference();
@@ -153,9 +154,9 @@ enum class EBaseEncoding
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
  */
-class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement {
- public:
-
+class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement
+{
+public:
     /** Create a new PdfDifferenceEncoding which is based on 
      *  the fonts encoding.
      *
@@ -239,7 +240,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  \returns an unicode PdfString.
      */
-    std::string ConvertToUnicode(const PdfString & rEncodedString, const PdfFont* pFont) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -249,26 +250,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
-
-    /** 
-     * \returns true if this encoding should be deleted automatically with the
-     *          font.
-     */
-    bool IsAutoDelete() const override;
-
-    /** 
-     *  \returns true if this is a single byte encoding with a maximum of 256 values.
-     */
-    bool IsSingleByteEncoding() const override;
-
-    /** 
-     * Get read-only access to the object containing the actual
-     * differences.
-     *
-     * \returns the container with the actual differences
-     */
-    inline const PdfEncodingDifference & GetDifferences() const;
+    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
@@ -284,16 +266,34 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      */
     char32_t GetCharCode( int nIndex ) const override;
 
- protected:
+    /**
+     * Get read-only access to the object containing the actual
+     * differences.
+     *
+     * \returns the container with the actual differences
+     */
+    inline const PdfEncodingDifference& GetDifferences() const { return m_differences; }
 
+    /**
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     */
+    inline bool IsAutoDelete() const override { return m_bAutoDelete; }
+
+    /**
+     *  \returns true if this is a single byte encoding with a maximum of 256 values.
+     */
+    inline bool IsSingleByteEncoding() const override { return true; }
+
+protected:
     /** Get a unique ID for this encoding
      *  which can used for comparisons!
      *
      *  \returns a unique id for this encoding!
      */
-    const PdfName & GetID() const override;
+    inline const PdfName& GetID() const override { return m_id; }
 
- private:
+private:
     /** Initialize this object
      */
     void Init();
@@ -315,39 +315,6 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
     PdfName       m_id;           ///< Unique ID of this encoding 
     EBaseEncoding m_baseEncoding; ///< The base encoding of this font 
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfName & PdfDifferenceEncoding::GetID() const
-{
-    return m_id;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfDifferenceEncoding::IsAutoDelete() const
-{
-    return m_bAutoDelete;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfDifferenceEncoding::IsSingleByteEncoding() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfEncodingDifference & PdfDifferenceEncoding::GetDifferences() const
-{
-    return m_differences;
-}
-
 
 }; /* PoDoFo */
 

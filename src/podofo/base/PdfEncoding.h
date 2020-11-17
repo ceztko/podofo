@@ -117,7 +117,7 @@ public:
      *
      *  \returns true if both encodings are the same.
      */
-    inline bool operator==( const PdfEncoding & rhs ) const;
+    bool operator==( const PdfEncoding & rhs ) const;
 
     /** Comparison operator.
      *
@@ -125,7 +125,7 @@ public:
      *
      *  \returns true if this encoding is less than the specified.
      */
-    inline bool operator<( const PdfEncoding & rhs ) const;
+    bool operator<( const PdfEncoding & rhs ) const;
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.
@@ -133,6 +133,8 @@ public:
      *  \param rDictionary add the encoding to this dictionary
      */
     virtual void AddToDictionary( PdfDictionary & rDictionary ) const = 0;
+
+    std::string ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const;
 
     /** Convert a string that is encoded with this encoding
      *  to an unicode PdfString.
@@ -143,7 +145,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    virtual std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
+    virtual std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -153,7 +155,7 @@ public:
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    virtual std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const;
 
     virtual bool IsAutoDelete() const = 0;
 
@@ -162,12 +164,12 @@ public:
     /** 
      * \returns the first character code that is defined for this encoding
      */
-    inline int GetFirstChar() const;
+    inline int GetFirstChar() const { return m_nFirstCode; }
 
     /** 
      * \returns the last character code that is defined for this encoding
      */
-    inline int GetLastChar() const;
+    inline int GetLastChar() const { return m_nLastCode; }
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
@@ -192,8 +194,8 @@ private:
 protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);
     static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
-    static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
-    static std::string convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
+    static std::string convertToEncoding(const std::string_view& rString, const UnicodeMap &map, const PdfFont* pFont);
+    static std::string convertToUnicode(const std::string_view& rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
     static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
 private:
@@ -203,38 +205,6 @@ private:
      unsigned m_maxCodeRangeSize;    // Size of in bytes of the bigger code range
      UnicodeMap m_toUnicode;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfEncoding::operator<( const PdfEncoding & rhs ) const
-{
-    return (this->GetID() < rhs.GetID());
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfEncoding::operator==( const PdfEncoding & rhs ) const
-{
-    return (this->GetID() == rhs.GetID());
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline int PdfEncoding::GetFirstChar() const
-{
-    return m_nFirstCode;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline int PdfEncoding::GetLastChar() const
-{
-    return m_nLastCode;
-}
 
 /**
  * A common base class for standard PdfEncoding which are
@@ -307,7 +277,7 @@ public:
      *
      *  \returns an unicode PdfString.
      */
-    std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -317,7 +287,7 @@ public:
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
+    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between

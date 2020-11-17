@@ -99,7 +99,7 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-string PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfFont* pFont) const
+string PdfCMapEncoding::ConvertToUnicode(const string_view& rString, const PdfFont* pFont) const
 {
     if(IsToUnicodeLoaded())
     {
@@ -114,7 +114,7 @@ string PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfFont
     }
 }
 
-PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+string PdfCMapEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* pFont) const
 {
     if(IsToUnicodeLoaded())
     {
@@ -123,7 +123,7 @@ PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding( const PdfString & rStrin
     else
     {
         if (m_toUnicode.empty())
-            return PdfRefCountedBuffer();
+            return { };
 
         return convertToEncoding(rString, m_toUnicode, pFont);
     }

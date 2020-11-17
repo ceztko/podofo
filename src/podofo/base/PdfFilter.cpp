@@ -246,12 +246,10 @@ PdfFilter::~PdfFilter()
     assert(!m_pOutputStream);
 }
 
-void PdfFilter::Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen ) const
+void PdfFilter::Encode( const char* pInBuffer, size_t lInLen, unique_ptr<char>& outBuffer, size_t* plOutLen ) const
 {
-    if( !this->CanEncode() )
-    {
+    if (!this->CanEncode())
         PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
-    }
 
     PdfMemoryOutputStream stream;
 
@@ -259,8 +257,8 @@ void PdfFilter::Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer
     const_cast<PdfFilter*>(this)->EncodeBlock( pInBuffer, lInLen );
     const_cast<PdfFilter*>(this)->EndEncode();
 
-    *ppOutBuffer = stream.TakeBuffer();
-    *plOutLen    = stream.GetLength();
+    outBuffer.reset(stream.TakeBuffer());
+    *plOutLen = stream.GetLength();
 }
 
 void PdfFilter::Decode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen,

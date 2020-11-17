@@ -79,22 +79,25 @@ PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
 
 PdfEncoding::~PdfEncoding() { }
 
-string PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont *pFont ) const
+string PdfEncoding::ConvertToUnicode(const PdfString& encodedStr, const PdfFont* pFont) const
+{
+    return ConvertToUnicode(encodedStr.GetRawData(), pFont);
+}
+
+string PdfEncoding::ConvertToUnicode(const string_view& encodedStr, const PdfFont *pFont) const
 {
     (void)pFont;
-
     if (m_toUnicode.empty())
         return { };
 
-    return convertToUnicode( rString, m_toUnicode, m_maxCodeRangeSize);
+    return convertToUnicode(encodedStr, m_toUnicode, m_maxCodeRangeSize);
 }
 
-string PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const UnicodeMap &map, unsigned maxCodeRangeSize)
+string PdfEncoding::convertToUnicode(const string_view& encodedStr, const UnicodeMap &map, unsigned maxCodeRangeSize)
 {
-    auto& rawstr = rEncodedString.GetRawData();
     string ret;
-    const char * pCurr = rawstr.data();
-    const char * pEnd = pCurr + rawstr.size();
+    const char * pCurr = encodedStr.data();
+    const char * pEnd = pCurr + encodedStr.size();
     while (pCurr != pEnd)
     {
         /*
@@ -134,15 +137,15 @@ string PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const Uni
     return ret;
 }
 
-PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString &rString, const PdfFont* pFont ) const
+string PdfEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* pFont) const
 {
     if (m_toUnicode.empty())
-        return PdfRefCountedBuffer();
+        return { };
 
     return convertToEncoding( rString, m_toUnicode, pFont );
 }
 
-PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, const UnicodeMap &map, const PdfFont *pFont )
+string PdfEncoding::convertToEncoding(const string_view& rString, const UnicodeMap &map, const PdfFont *pFont )
 {
     (void)rString;
     (void)map;
@@ -408,6 +411,16 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
     codeSize = len;
     return ret;
 }
+
+bool PdfEncoding::operator<(const PdfEncoding& rhs) const
+{
+    return this->GetID() < rhs.GetID();
+}
+
+bool PdfEncoding::operator==(const PdfEncoding& rhs) const
+{
+    return this->GetID() == rhs.GetID();
+}
     
 // -----------------------------------------------------
 // PdfSimpleEncoding
@@ -465,16 +478,15 @@ char32_t PdfSimpleEncoding::GetCharCode( int nIndex ) const
 
 }
 
-string PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont) const
+string PdfSimpleEncoding::ConvertToUnicode(const string_view& rawstr, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
+        return PdfEncoding::ConvertToUnicode(rawstr, pFont);
     }
     else
     {
         const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
-        auto &rawstr = rEncodedString.GetRawData();
         if (rawstr.size() == 0)
             return { };
 
@@ -488,11 +500,11 @@ string PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, co
     }
 }
 
-PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont) const
+string PdfSimpleEncoding::ConvertToEncoding(const string_view& str, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToEncoding(rString, pFont);
+        return PdfEncoding::ConvertToEncoding(str, pFont);
     }
     else
     {
@@ -502,15 +514,10 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
             const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
 
         string buffer;
-
-        auto& str = rString.GetString();
         for (size_t i = 0; i < str.size(); i++)
-        {
             buffer.push_back(m_pEncodingTable[str[i]]);
-        }
         
-        PdfRefCountedBuffer cDest(buffer.data(), buffer.size());
-        return cDest;
+        return buffer;
     }
 }
 

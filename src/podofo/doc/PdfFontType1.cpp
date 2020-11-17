@@ -86,13 +86,12 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
 
-void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString &sText, size_t lStringLen )
+void PdfFontType1::AddUsedSubsettingGlyphs(const string_view& str, size_t lStringLen )
 {
 	if ( m_bIsSubsetting )
 	{
         throw std::runtime_error("Untested after utf-8 migration");
         ///// assert(IsUnicode) NOTE: this was written to work only on non-unicode
-        auto& str = sText.GetString();
 		for (size_t i = 0; i < str.size(); i++)
 		{
             unsigned char c = (unsigned char)str[i];

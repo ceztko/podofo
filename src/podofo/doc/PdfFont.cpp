@@ -130,32 +130,28 @@ inline char ToHex( const char byte )
 
     return s_pszHex[byte % 16];
 }
-void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
+void PdfFont::WriteStringToStream(const string_view& rsString, PdfStream* pStream)
 {
-    if( !m_pEncoding )
-    {
+    if (m_pEncoding == nullptr)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     stringstream ostream;
     WriteStringToStream( rsString, ostream );
     pStream->Append( ostream.str() );
 }
 
-void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream )
+void PdfFont::WriteStringToStream(const string_view& rsString, ostream& rStream)
 {
-    PdfRefCountedBuffer buffer = m_pEncoding->ConvertToEncoding( rsString, this );
+    auto encoded = m_pEncoding->ConvertToEncoding( rsString, this );
     size_t lLen = 0;
-    char* pBuffer = nullptr;
 
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );    
-    pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
+    unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );
+    unique_ptr<char> buffer;
+    pFilter->Encode(encoded.data(), encoded.size(), buffer, &lLen);
 
     rStream << "<";
-    rStream.write( pBuffer, lLen );
+    rStream.write(buffer.get(), lLen );
     rStream << ">";
-
-    podofo_free( pBuffer );
 }
 
 // Peter Petrov 5 January 2009
@@ -176,13 +172,9 @@ void PdfFont::EmbedSubsetFont()
     PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
 }
 
-double PdfFont::StringWidth(const PdfString& rsString, const PdfTextState& state) const
+double PdfFont::StringWidth(const string_view& view, const PdfTextState& state) const
 {
-    return 0.0;
-}
-
-double PdfFont::StringWidth(const std::string_view& view, const PdfTextState& state) const
-{
+    //// Use PdfFontMetrics::StringWidth()
     return 0.0;
 }
 
@@ -284,7 +276,7 @@ double PdfFont::GetDescent(const PdfTextState& state) const
     return m_pMetrics->GetDescent() * state.GetFontSize();
 }
 
-void PdfFont::AddUsedSubsettingGlyphs(const PdfString&, size_t)
+void PdfFont::AddUsedSubsettingGlyphs(const string_view&, size_t)
 {
     //virtual function is only implemented in derived class
     PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Subsetting not implemented for this font type.");

@@ -60,7 +60,8 @@
 #include "base/PdfInputDevice.h"
 #include "base/PdfOutputDevice.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 struct TBFRange
 {
@@ -249,12 +250,12 @@ void PdfFontCID::EmbedSubsetFont()
 	EmbedFont();
 }
 
-void PdfFontCID::AddUsedSubsettingGlyphs (const PdfString &sText, size_t lStringLen)
+void PdfFontCID::AddUsedSubsettingGlyphs(const string_view& sText, size_t lStringLen)
 {
 	if (IsSubsetting())
     {
-        auto it = sText.GetString().begin();
-        auto end = sText.GetString().end();
+        auto it = sText.begin();
+        auto end = sText.end();
         while (it != end)
         {
             char32_t c = utf8::next(it, end);
@@ -952,6 +953,3 @@ static void createWidths(PdfObject* pFontDict, const PdfFontMetrics & metrics, c
         }
     }
 }
-
-};
-

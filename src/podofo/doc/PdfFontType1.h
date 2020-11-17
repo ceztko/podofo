@@ -45,8 +45,9 @@ namespace PoDoFo {
  *  to embedd type1 fonts into a PDF file
  *  or to draw with type1 fonts. 
  */
-class PdfFontType1 : public PdfFontSimple {
- public:
+class PdfFontType1 : public PdfFontSimple
+{
+public:
 
     /** Create a new Type1 font object.
      *
@@ -93,7 +94,7 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param sText the text string which should be printed (is not allowed to be nullptr!)
      *  \param lStringLen draw only lLen characters of pszText
 	 */
-	void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen ) override;
+	void AddUsedSubsettingGlyphs(const std::string_view& sText, size_t lStringLen ) override;
 
   	/** Remember the glyphname in case of subsetting 
 	 *

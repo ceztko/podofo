@@ -44,8 +44,9 @@ class PdfFontMetricsFreetype;
 
 /** A PdfFont that represents a CID font.
  */
-class PdfFontCID : public PdfFont {
- public:
+class PdfFontCID : public PdfFont
+{
+public:
 
     /** Create a new CID font. 
      * 
@@ -81,7 +82,7 @@ class PdfFontCID : public PdfFont {
     void EmbedFont() override;
 
     void EmbedSubsetFont() override;
-    void AddUsedSubsettingGlyphs (const PdfString &sText, size_t lStringLen) override;
+    void AddUsedSubsettingGlyphs(const std::string_view& sText, size_t lStringLen) override;
 
  private:
     /** Create the DW and W entries which contain

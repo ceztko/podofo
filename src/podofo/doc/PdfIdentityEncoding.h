@@ -46,8 +46,9 @@ namespace PoDoFo {
  *  glyphs, PdfIdentityEncoding will support all unicode
  *  characters.
  */
-class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
- public:
+class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding
+{
+public:
     /** 
      *  Create a new PdfIdentityEncoding.
      *
@@ -74,7 +75,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *
      *  \returns an unicode PdfString.
      */
-    std::string ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -84,20 +85,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
-
-    /** 
-     * PdfIdentityEncoding is usually delete along with the font.
-     *
-     * \returns true if this encoding should be deleted automatically with the
-     *          font.
-     */
-    bool IsAutoDelete() const override;
-
-    /** 
-     *  \returns true if this is a single byte encoding with a maximum of 256 values.
-     */
-    bool IsSingleByteEncoding() const override;
+    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
@@ -113,16 +101,28 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      */
     char32_t GetCharCode( int nIndex ) const override;
 
- protected:
+    /**
+     * PdfIdentityEncoding is usually delete along with the font.
+     *
+     * \returns true if this encoding should be deleted automatically with the
+     *          font.
+     */
+    inline bool IsAutoDelete() const override { return m_bAutoDelete; }
+
+    /**
+     *  \returns true if this is a single byte encoding with a maximum of 256 values.
+     */
+    inline bool IsSingleByteEncoding() const override { return false; }
+
+protected:
     /** Get a unique ID for this encoding
      *  which can used for comparisons!
      *
      *  \returns a unique id for this encoding!
      */
-    inline const PdfName & GetID() const override;
+     inline const PdfName& GetID() const override { return m_id; }
     
- private:
-    
+private:   
     /** Gets the char code from a uniode value
      *
      *  \param lUnicodeValue the unicode valye
@@ -135,30 +135,6 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
     bool    m_bAutoDelete;      ///< If true this encoding is deleted by its font.
     PdfName m_id;               ///< Unique ID of this encoding
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfName & PdfIdentityEncoding::GetID() const
-{
-    return m_id;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfIdentityEncoding::IsAutoDelete() const
-{
-    return m_bAutoDelete;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfIdentityEncoding::IsSingleByteEncoding() const
-{
-    return false;
-}
 
 };  /* namespace PoDoFo */
 

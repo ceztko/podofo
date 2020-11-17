@@ -92,7 +92,7 @@ public:
      *  \param ppOutBuffer receives pointer to the buffer of the encoded data
      *  \param plOutLen pointer to where to write the output buffer's length
      */
-    void Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen ) const;
+    void Encode(const char* pInBuffer, size_t lInLen, std::unique_ptr<char>& outBuffer, size_t* plOutLen) const;
 
     /** Begin progressively encoding data using this filter.
      *

@@ -58,9 +58,9 @@ public:
 
 public:
     PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = nullptr);
-    std::string ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const override;
+    std::string ConvertToUnicode(const std::string_view& rEncodedString, const PdfFont* pFont) const override;
     void AddToDictionary(PdfDictionary & rDictionary ) const override;
-    PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const override;
+    std::string ConvertToEncoding(const std::string_view& rString, const PdfFont* pFont) const override;
     bool IsAutoDelete() const override;
     bool IsSingleByteEncoding() const override;
     char32_t GetCharCode(int nIndex) const override;

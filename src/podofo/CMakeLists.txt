@@ -110,7 +110,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfPainter.cpp
   doc/PdfShadingPattern.cpp
   doc/PdfStreamedDocument.cpp
-  doc/PdfTable.cpp
   doc/PdfTilingPattern.cpp
   doc/PdfXObject.cpp
   )
@@ -234,7 +233,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfPainter.h
   doc/PdfShadingPattern.h
   doc/PdfStreamedDocument.h
-  doc/PdfTable.h
   doc/PdfTilingPattern.h
   doc/PdfXObject.h
   )

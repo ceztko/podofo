@@ -101,7 +101,6 @@
 #include "doc/PdfPainter.h"
 #include "doc/PdfShadingPattern.h"
 #include "doc/PdfStreamedDocument.h"
-#include "doc/PdfTable.h"
 #include "doc/PdfTilingPattern.h"
 #include "doc/PdfXObject.h"
 

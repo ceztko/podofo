@@ -47,8 +47,7 @@
 #include <string>
 
 using namespace std;
-
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfIdentityEncoding::PdfIdentityEncoding( int nFirstChar, int nLastChar, bool bAutoDelete, PdfObject *pToUnicode )
     : PdfEncoding( nFirstChar, nLastChar, pToUnicode ), m_bAutoDelete( bAutoDelete )
@@ -73,7 +72,7 @@ char32_t PdfIdentityEncoding::GetCharCode( int nIndex ) const
     return (char32_t)nIndex;
 }
 
-string PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
+string PdfIdentityEncoding::ConvertToUnicode(const string_view& rEncodedString, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
@@ -82,29 +81,25 @@ string PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, 
     else
     {
         /* Identity-H means 1-1 mapping */	  
-        return rEncodedString.GetRawData();
+        return (string)rEncodedString;
     }
 }
 
-PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding(const PdfString & rString, const PdfFont* pFont) const
+string PdfIdentityEncoding::ConvertToEncoding(const string_view& str, const PdfFont* pFont) const
 {
     if( IsToUnicodeLoaded() )
     {
-        return PdfEncoding::ConvertToEncoding(rString, pFont);
+        return PdfEncoding::ConvertToEncoding(str, pFont);
     }
     else if( pFont ) 
     {
-        throw std::runtime_error("Untested after utf-8 migration");
-        auto &str = rString.GetString();
-        PdfRefCountedBuffer buffer({ str.data(), str.size() });
-        return buffer;
+        throw runtime_error("Untested after utf-8 migration");
+        return (string)str;
     }
     else
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    return PdfRefCountedBuffer();
+    return { };
 }
-    
-}; /* namespace PoDoFo */

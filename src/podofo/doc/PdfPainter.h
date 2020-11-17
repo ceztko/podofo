@@ -55,7 +55,6 @@ class PdfObject;
 class PdfReference;
 class PdfShadingPattern;
 class PdfStream;
-class PdfString;
 class PdfTilingPattern;
 class PdfXObject;
 
@@ -314,7 +313,7 @@ public:
      *
      *  \see SetFont()
      */
-    void DrawText( double dX, double dY, const PdfString & sText);
+    void DrawText( double dX, double dY, const std::string_view& sText);
 
     /** Draw a single-line text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -325,7 +324,7 @@ public:
      *
      *  \see SetFont()
      */
-    void DrawText( double dX, double dY, const PdfString & sText, size_t lLen );
+    void DrawText( double dX, double dY, const std::string_view& sText, size_t lLen );
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -342,7 +341,7 @@ public:
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
-                            const PdfString & rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
+                            const std::string_view& rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
                             EPdfVerticalAlignment eVertical = EPdfVerticalAlignment::Top, bool bClip = true, bool bSkipSpaces = true );
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
@@ -356,7 +355,7 @@ public:
      *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
+    void DrawMultiLineText( const PdfRect & rRect, const std::string_view& rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
                                    EPdfVerticalAlignment eVertical = EPdfVerticalAlignment::Top, bool bClip = true, bool bSkipSpaces = true );
 
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
@@ -365,7 +364,7 @@ public:
      *  \param rsText the text which should be drawn
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    std::vector<PdfString> GetMultiLineTextAsLines( double dWidth, const PdfString & rsText, bool bSkipSpaces = true);
+    std::vector<std::string> GetMultiLineTextAsLines( double dWidth, const std::string_view& rsText, bool bSkipSpaces = true);
 
     /** Draw a single line of text horizontally aligned.
      *  \param dX the x coordinate of the text line
@@ -374,7 +373,7 @@ public:
      *  \param rsText the text to draw
      *  \param eAlignment alignment of the text line
      */
-    void DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment );
+    void DrawTextAligned( double dX, double dY, double dWidth, const std::string_view& rsText, EPdfAlignment eAlignment );
 
     /** Begin drawing multiple text strings on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -407,7 +406,7 @@ public:
      *  \see MoveTextPos()
      *  \see EndText()
      */
-	void AddText( const PdfString & sText );
+	void AddText(const std::string_view& sText);
 
     /** Draw a string on a page.
      *  You have to call BeginText before the first call of this function
@@ -424,7 +423,7 @@ public:
      *  \see MoveTextPos()
      *  \see EndText()
      */
-	void AddText( const PdfString & sText, size_t lStringLen );
+	void AddText(const std::string_view& sText, size_t lStringLen);
 
     /** Move position for text drawing on a page.
      *  You have to call BeginText before calling this function
@@ -453,16 +452,6 @@ public:
      *  \see MoveTextPos()
      */
 	void EndText();
-
-    /** Draw a single glyph on a page using a given font object.
-	 *  \param pDocument pointer to the document, needed to generate a copy of the current font
-     *  \param dX the x coordinate
-     *  \param dY the y coordinate
-     *  \param pszGlyphname the name of the glyph which should be printed 
-     *
-     *  \see SetFont()
-     */
-    void DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, const char * pszGlyphname );
 
     /** Draw an image on the current page.
      *  \param dX the x coordinate (bottom left position of the image)
@@ -790,7 +779,7 @@ private:
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    PdfString ExpandTabs( const PdfString & rsString, ssize_t lLen = -1) const;
+    std::string ExpandTabs(const std::string_view& rsString, ssize_t lLen = -1) const;
     void CheckStream();
     void finishDrawing();
 

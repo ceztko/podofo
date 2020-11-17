@@ -2535,8 +2535,7 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName( char32_t inCodePoint )
     //return PdfName(".notdef");
 }
 
-string PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString,
-                                                   const PdfFont* pFont ) const
+string PdfDifferenceEncoding::ConvertToUnicode(const string_view& rEncodedString, const PdfFont* pFont) const
 {
     const PdfEncoding* pEncoding = GetBaseEncoding();
     
@@ -2554,15 +2553,15 @@ string PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString
     return ret;
 }
 
-PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
+string PdfDifferenceEncoding::ConvertToEncoding(const string_view& rString, const PdfFont* /*pFont*/) const
 {
-    throw std::runtime_error("Untested after utf-8 migration");
+    throw runtime_error("Untested after utf-8 migration");
 
     const PdfEncoding* pEncoding = GetBaseEncoding();
 
-    std::string ret;
-    auto it = rString.GetString().begin();
-    auto end = rString.GetString().end();
+    string ret;
+    auto it = rString.begin();
+    auto end = rString.end();
     while (it != end)
     {
         char32_t c32 = utf8::next(it, end);
@@ -2574,7 +2573,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         }
     }
 
-    return PdfRefCountedBuffer(ret);
+    return ret;
 }
 
 const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const

@@ -93,7 +93,7 @@ public:
 
     virtual ~PdfFont();
 
-    /** Write a PdfString to a PdfStream in a format so that it can
+    /** Write a string to a PdfStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
@@ -102,9 +102,9 @@ public:
      *  \param pStream the string will be appended to pStream without any leading
      *                 or following whitespaces.
      */
-    void WriteStringToStream( const PdfString & rsString, PdfStream * pStream );
+    void WriteStringToStream(const std::string_view& rsString, PdfStream * pStream);
 
-    /** Write a PdfString to a PdfStream in a format so that it can
+    /** Write a string to a PdfStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
@@ -113,7 +113,7 @@ public:
      *  \param rStream the string will be appended to the stream without any leading
      *                 or following whitespaces.
      */
-    virtual void WriteStringToStream( const PdfString & rsString, std::ostream & rStream );
+    virtual void WriteStringToStream(const std::string_view& rsString, std::ostream & rStream );
 
     // Peter Petrov 24 September 2008
     /** Embeds the font into PDF page
@@ -130,7 +130,7 @@ public:
      *
      *  \see IsSubsetting
      */
-    virtual void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen );
+    virtual void AddUsedSubsettingGlyphs(const std::string_view& sText, size_t lStringLen);
 
     /** Remember the glyphname in case of subsetting
      *
@@ -144,15 +144,6 @@ public:
      *  \see IsSubsetting
      */
     virtual void EmbedSubsetFont();
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param rsString a PdfString from which the width shall be calculated
-     *  \returns the width in PDF units
-     *
-     *  This is an overloaded method for your convinience!
-     */
-    double StringWidth(const PdfString& rsString, const PdfTextState &state) const;
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
