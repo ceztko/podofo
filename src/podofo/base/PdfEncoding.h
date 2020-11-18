@@ -189,7 +189,8 @@ public:
     bool IsToUnicodeLoaded() const { return m_bToUnicodeIsLoaded; }
 
 private:
-    static void handle_beginbfrange_String(UnicodeMap& map, uint32_t srcCodeLo, const std::string& dstCodeLo, unsigned codeSize, unsigned rangeSize);
+    static std::string HandleBaseFontString(const PdfString& str);
+    static void HandleBaseFontRange(UnicodeMap& map, uint32_t srcCodeLo, const std::string& dstCodeLo, unsigned codeSize, unsigned rangeSize);
 
 protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);

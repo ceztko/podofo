@@ -221,7 +221,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             {
                                 auto &dst = arr[i];
                                 if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
-                                    map[{ codeSize, srcCodeLo + i }] = dst.GetString().GetString();
+                                    map[{ codeSize, srcCodeLo + i }] = HandleBaseFontString(dst.GetString());
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetString();
                                 else
@@ -231,14 +231,14 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            string dstCodeLo = var->GetString().GetString();
-                            handle_beginbfrange_String(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
+                            string dstCodeLo = HandleBaseFontString(var->GetString());
+                            HandleBaseFontRange(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else if (var->IsName())
                         {
                             // As found in tecnincal document #5014
                             string dstCodeLo = var->GetName().GetString();
-                            handle_beginbfrange_String(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
+                            HandleBaseFontRange(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
@@ -265,7 +265,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
-                            mappedstr = var->GetString().GetString();
+                            mappedstr = HandleBaseFontString(var->GetString());
                         }
                         else if (var->IsName())
                         {
@@ -334,7 +334,21 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     }
 }
 
-void PdfEncoding::handle_beginbfrange_String(UnicodeMap& map, uint32_t srcCodeLo, const string& dstCodeLo, unsigned codeSize, unsigned rangeSize)
+// Base Font 3 type CMap interprets strings as found in
+// beginbfchar and beginbfrange as UTF-16BE
+// see PdfReference 1.7 page 472
+string PdfEncoding::HandleBaseFontString(const PdfString& str)
+{
+    auto& rawdata = str.GetRawData();
+    string utf8;
+    utf8::utf16to8(utf8::endianess::big_endian,
+        (char16_t*)rawdata.data(), (char16_t*)(rawdata.data() + rawdata.size()),
+        std::back_inserter(utf8));
+    return utf8;
+}
+
+// Handle a range in begingbfrage "srcCodeLo srcCodeHi dstCodeLo" clause
+void PdfEncoding::HandleBaseFontRange(UnicodeMap& map, uint32_t srcCodeLo, const string& dstCodeLo, unsigned codeSize, unsigned rangeSize)
 {
     char32_t back = U'\0';
     auto it = dstCodeLo.begin();
