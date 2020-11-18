@@ -353,7 +353,9 @@ void PdfString::evaluateString() const
         case StringEncoding::utf16be:
         {
             string utf8;
-            utf8::utf16to8(utf8::endianess::big_endian, m_data->data(), m_data->data() + m_data->size(), std::back_inserter(utf8));
+            utf8::utf16to8(utf8::endianess::big_endian,
+                (char16_t*)m_data->data(), (char16_t*)(m_data->data() + m_data->size()),
+                std::back_inserter(utf8));
             utf8.swap(*m_data);
             const_cast<PdfString&>(*this).m_state = StringState::Unicode;
             break;
@@ -361,7 +363,9 @@ void PdfString::evaluateString() const
         case StringEncoding::utf16le:
         {
             string utf8;
-            utf8::utf16to8(utf8::endianess::little_endian, m_data->data(), m_data->data() + m_data->size(), std::back_inserter(utf8));
+            utf8::utf16to8(utf8::endianess::little_endian,
+                (char16_t*)m_data->data(), (char16_t*)(m_data->data() + m_data->size()),
+                std::back_inserter(utf8));
             utf8.swap(*m_data);
             const_cast<PdfString&>(*this).m_state = StringState::Unicode;
             break;
