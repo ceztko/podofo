@@ -53,19 +53,17 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
-    : PdfEncoding(0x0000, 0xffff, pToUnicode), m_baseEncoding( EBaseEncoding::Font )
+PdfCMapEncoding::PdfCMapEncoding (const PdfObject& obj, const PdfObject * pToUnicode) :
+    PdfEncoding(0x0000, 0xFFFF, pToUnicode == nullptr ? pToUnicode : &obj),
+    m_baseEncoding( EBaseEncoding::Font )
 {
     // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
     // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
-
-    if (pObject && pObject != pToUnicode && pObject->HasStream())
-        ParseCMapObject(pObject, m_toUnicode, m_nFirstCode, m_nLastCode, m_maxCodeRangeSize);
 }
 
-void PdfCMapEncoding::AddToDictionary(PdfDictionary &) const
+void PdfCMapEncoding::AddToDictionary(PdfDictionary& rDictionary) const
 {
-
+    throw runtime_error("Not implemented");
 }
 
 const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
@@ -96,48 +94,15 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-string PdfCMapEncoding::ConvertToUnicode(const string_view& rString) const
-{
-    if(IsToUnicodeLoaded())
-    {
-        return PdfEncoding::ConvertToUnicode(rString);
-    }
-    else
-    {
-        if (m_toUnicode.empty())
-            return { };
-
-        return convertToUnicode(rString, m_toUnicode, m_maxCodeRangeSize);
-    }
-}
-
-string PdfCMapEncoding::ConvertToEncoding(const string_view& rString) const
-{
-    if(IsToUnicodeLoaded())
-    {
-        return PdfEncoding::ConvertToEncoding(rString);
-    }
-    else
-    {
-        if (m_toUnicode.empty())
-            return { };
-
-        return convertToEncoding(rString, m_toUnicode);
-    }
-}
-
-
 bool PdfCMapEncoding::IsSingleByteEncoding() const
 {
 	return false;
 }
 
-
 bool PdfCMapEncoding::IsAutoDelete() const
 {
     return true;
 }
-
 
 char32_t PdfCMapEncoding::GetCharCode( int nIndex ) const
 {
@@ -149,7 +114,6 @@ char32_t PdfCMapEncoding::GetCharCode( int nIndex ) const
     
     return static_cast<char32_t>(nIndex);
 }
-
 
 const PdfName & PdfCMapEncoding::GetID() const
 {

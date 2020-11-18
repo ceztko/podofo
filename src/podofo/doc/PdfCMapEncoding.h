@@ -57,10 +57,8 @@ public:
     };
 
 public:
-    PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = nullptr);
-    std::string ConvertToUnicode(const std::string_view& rEncodedString) const override;
-    void AddToDictionary(PdfDictionary & rDictionary ) const override;
-    std::string ConvertToEncoding(const std::string_view& rString) const override;
+    PdfCMapEncoding(const PdfObject& pObject, const PdfObject* pToUnicode = nullptr);
+    void AddToDictionary(PdfDictionary& rDictionary) const override;
     bool IsAutoDelete() const override;
     bool IsSingleByteEncoding() const override;
     char32_t GetCharCode(int nIndex) const override;
@@ -69,10 +67,6 @@ public:
 
 private:
     EBaseEncoding m_baseEncoding;
-    char32_t m_nFirstCode;               // The first defined character code
-    char32_t m_nLastCode;                // The last defined character code
-    unsigned m_maxCodeRangeSize;         // Size of in bytes of the bigger code range
-    UnicodeMap m_toUnicode;
 };
 
 }; /*PoDoFo namespace end*/

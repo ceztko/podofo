@@ -56,23 +56,24 @@
 #include "PdfArray.h"
 
 using namespace std;
-
 using namespace PoDoFo;
 
 static void readNextVariantSequence(PdfVariant& variant, PdfContentsTokenizer& tokenizer,
     const string_view& endSequenceKeyword, bool &endOfSequence);
 
-PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
-    : m_bToUnicodeIsLoaded(false), m_nFirstCode( nFirstChar ), m_nLastCode( nLastChar )
+PdfEncoding::PdfEncoding(int nFirstChar, int nLastChar, const PdfObject* pToUnicode) :
+    m_bToUnicodeIsLoaded(false),
+    m_nFirstCode( nFirstChar ),
+    m_nLastCode( nLastChar ),
+    m_maxCodeRangeSize(0)
 {
     if( !(m_nFirstCode < m_nLastCode) )
-    {
         PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "PdfEncoding: nFirstChar must be smaller than nLastChar" ); 
-    }
 
-    if (pToUnicode && pToUnicode->HasStream())
+    const PdfStream* stream;
+    if (pToUnicode != nullptr && pToUnicode->TryGetStream(stream))
     {
-        ParseCMapObject(pToUnicode, m_toUnicode, m_nFirstCode, m_nLastCode, m_maxCodeRangeSize);
+        ParseCMapObject(*stream, m_toUnicode, m_nFirstCode, m_nLastCode, m_maxCodeRangeSize);
         m_bToUnicodeIsLoaded = true;
     }
 }
@@ -151,12 +152,11 @@ string PdfEncoding::convertToEncoding(const string_view& rString, const UnicodeM
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
-void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
+void PdfEncoding::ParseCMapObject(const PdfStream& stream, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
 {
     unique_ptr<char> streamBuffer;
     size_t streamBufferLen;
-    PdfStream &CIDStreamdata = obj->GetOrCreateStream();
-    CIDStreamdata.GetFilteredCopy(streamBuffer, streamBufferLen);
+    stream.GetFilteredCopy(streamBuffer, streamBufferLen);
 
     PdfRefCountedInputDevice device(streamBuffer.get(), streamBufferLen);
     PdfContentsTokenizer tokenizer(device);
@@ -335,8 +335,9 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 }
 
 // Base Font 3 type CMap interprets strings as found in
-// beginbfchar and beginbfrange as UTF-16BE
-// see PdfReference 1.7 page 472
+// beginbfchar and beginbfrange as UTF-16BE, see PdfReference 1.7
+// page 472. NOTE: Before UTF-16BE there was UCS-2 but UTF-16
+// is backward compatible with UCS-2
 string PdfEncoding::HandleBaseFontString(const PdfString& str)
 {
     auto& rawdata = str.GetRawData();

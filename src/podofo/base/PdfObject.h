@@ -403,20 +403,17 @@ public:
     PdfStream & GetOrCreateStream();
 
     /** Get a handle to a const PDF stream object.
-     *  If the PDF object does not have a stream,
-     *  null is returned.
-     *  \returns a PdfStream object or null
+     * Throws if there's no stream
      */
-    const PdfStream * GetStream() const;
-
-    bool IsIndirect() const;
+    const PdfStream& GetStream() const;
 
     /** Get a handle to a const PDF stream object.
-     *  If the PDF object does not have a stream,
-     *  null is returned.
-     *  \returns a PdfStream object or null
+     * Throws if there's no stream 
      */
-    PdfStream * GetStream();
+    PdfStream& GetStream();
+
+    bool TryGetStream(PdfStream*& stream);
+    bool TryGetStream(const PdfStream*& stream) const;
 
     /** Check if this object has a PdfStream object
      *  appended.
@@ -424,6 +421,8 @@ public:
      *  \returns true if the object has a stream
      */
     bool HasStream() const;
+
+    bool IsIndirect() const;
 
     /**
      * Sets this object to immutable,

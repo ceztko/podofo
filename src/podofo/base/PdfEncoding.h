@@ -49,6 +49,7 @@ namespace PoDoFo {
 class PdfDictionary;
 class PdfFont;
 class PdfObject;
+class PdfStream;
 
 /** 
  * A PdfEncoding is in PdfFont to transform a text string
@@ -97,9 +98,10 @@ protected:
      *                    (either a byte value in the current encoding or a unicode value)
      *  \param nLastChar the last supported character code, must be larger than nFirstChar 
      *                    (either a byte value in the current encoding or a unicode value)
+     *  \param toUnicode /ToUnicode object, if available
      *
      */
-    PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = nullptr );
+    PdfEncoding( int nFirstChar, int nLastChar, const PdfObject* toUnicode = nullptr );
 
     /** Get a unique ID for this encoding
      *  which can used for comparisons!
@@ -197,7 +199,7 @@ protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
     static std::string convertToEncoding(const std::string_view& rString, const UnicodeMap &map);
     static std::string convertToUnicode(const std::string_view& rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
-    static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
+    static void ParseCMapObject(const PdfStream& stream, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
 private:
      bool m_bToUnicodeIsLoaded; // If true, ToUnicode has been parsed

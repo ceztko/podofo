@@ -94,8 +94,8 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
             return new PdfIdentityEncoding(0, 0xffff, true, pToUnicode);
         }
 
-        if ( pObject->HasStream() )
-            return new PdfCMapEncoding(pObject, pToUnicode);
+        if (pObject->HasStream())
+            return new PdfCMapEncoding(*pObject, pToUnicode);
 
         return new PdfDifferenceEncoding(pObject, true, bExplicitNames);
     }

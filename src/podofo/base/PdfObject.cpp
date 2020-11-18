@@ -290,21 +290,57 @@ PdfStream & PdfObject::GetOrCreateStream()
     return getOrCreateStream();
 }
 
-const PdfStream* PdfObject::GetStream() const
+const PdfStream& PdfObject::GetStream() const
 {
     DelayedLoadStream();
-    return m_pStream.get();
+    if (m_pStream == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "The object doesn't have a stream");
+
+    return *m_pStream.get();
+}
+
+PdfStream& PdfObject::GetStream()
+{
+    DelayedLoadStream();
+    if (m_pStream == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "The object doesn't have a stream");
+
+    return *m_pStream.get();
+}
+
+bool PdfObject::TryGetStream(PdfStream*& stream)
+{
+    DelayedLoadStream();
+    if (m_pStream == nullptr)
+    {
+        stream = nullptr;
+        return false;
+    }
+    else
+    {
+        stream = m_pStream.get();
+        return true;
+    }
+}
+
+bool PdfObject::TryGetStream(const PdfStream*& stream) const
+{
+    DelayedLoadStream();
+    if (m_pStream == nullptr)
+    {
+        stream = nullptr;
+        return false;
+    }
+    else
+    {
+        stream = m_pStream.get();
+        return true;
+    }
 }
 
 bool PdfObject::IsIndirect() const
 {
     return m_reference.IsIndirect();
-}
-
-PdfStream* PdfObject::GetStream()
-{
-    DelayedLoadStream();
-    return m_pStream.get();
 }
 
 bool PdfObject::HasStream() const
