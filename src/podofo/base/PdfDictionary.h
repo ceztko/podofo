@@ -190,7 +190,7 @@ public:
 
     PdfName GetKeyAsName(const PdfName& key, const PdfName& defvalue = PdfName::KeyNull) const;
 
-    PdfString GetKeyAsString(const PdfName & key, const PdfString & default = { }) const;
+    PdfString GetKeyAsString(const PdfName & key, const PdfString & defvalue = { }) const;
 
     PdfReference GetKeyAsReference(const PdfName & key, const PdfReference & defvalue = { }) const;
 
